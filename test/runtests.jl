@@ -1,5 +1,5 @@
 using Test
-using MFGPI
+using MfgSolvers
 
 function OneDimTest1()
     xmin = 0.0

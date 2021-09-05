@@ -1,4 +1,4 @@
-module MFGPI
+module MfgSolvers
 using LinearAlgebra, SparseArrays
 
 include("utils.jl")
