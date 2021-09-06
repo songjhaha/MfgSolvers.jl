@@ -43,21 +43,6 @@ end
 
 function TwoDimTest3()
     xmin1, xmax1, xmin2, xmax2 = 0, 1, 0, 1
-    T = 0.5
-    ε = 0.7
-    m0(x1,x2) = exp(-10((x1-0.25)^2+(x2-0.25)^2))
-    uT(x1,x2) = cospi(2*x1) + cospi(2*x2)
-    V(x1,x2) = 0.1
-    F1(m) = m^0.5
-    F2(m) = 0
-    update_Q(Du,m) = Du / F1(m)
-    problem = MFGTwoDim(xmin1,xmax1,xmin2,xmax2,T,ε,m0,uT,V,F1,F2,update_Q)
-    re = solve_mfg(problem;N=50,verbose=false)
-    return re.converge
-end
-
-function TwoDimTest4()
-    xmin1, xmax1, xmin2, xmax2 = 0, 1, 0, 1
     T = 1
     ε = 0.8
     m0(x1,x2) = exp(-40((x1-0.5)^2+(x2-0.5)^2))
@@ -71,8 +56,40 @@ function TwoDimTest4()
     return re.converge
 end
 
-function TwoDimTest5()
-    # simple case without meanfield
+function TwoDimTest4()
+    xmin1, xmax1, xmin2, xmax2 = 0, 1, 0, 1
+    T = 0.5
+    ε = 0.7
+    m0(x1,x2) = exp(-10((x1-0.25)^2+(x2-0.25)^2))
+    uT(x1,x2) = cospi(2*x1) + cospi(2*x2)
+    V(x1,x2) = 0.1
+    F1(m) = m^0.5
+    F2(m) = 0
+    update_Q(Du,m) = Du / F1(m)
+    problem = MFGTwoDim(xmin1,xmax1,xmin2,xmax2,T,ε,m0,uT,V,F1,F2,update_Q)
+    re = solve_mfg(problem;N=50,verbose=false)
+    return re.converge
+end
+
+
+function TwoDimTestSimple()
+    # simple 2d case without meanfield
+    xmin1, xmax1, xmin2, xmax2 = 0, 1, 0, 1
+    T = 1
+    ε = 1
+    m0(x1,x2) = exp(-40((x1-0.5)^2+(x2-0.5)^2))
+    uT(x1,x2) = (cospi(2*x1) + cospi(2*x2))
+    V(x1,x2) = 0
+    F1(m) = 1
+    F2(m) = 0
+    update_Q(Du,m) = Du / F1(m)
+    problem = MFGTwoDim(xmin1,xmax1,xmin2,xmax2,T,ε,m0,uT,V,F1,F2,update_Q)
+    re = solve_mfg(problem;N=100,verbose=false,method=:PI2)
+    return re.converge
+end
+
+function TwoDimTestPI2()
+    # simple 2d case without meanfield
     xmin1, xmax1, xmin2, xmax2 = 0, 1, 0, 1
     T = 1
     ε = 1
@@ -87,11 +104,16 @@ function TwoDimTest5()
     return re.converge
 end
 
+
 @testset "OneDim" begin
     @test OneDimTest1()
     @test OneDimTest2()
 end
 
 @testset "TwoDim" begin
-    @test TwoDimTest5()
+    @test TwoDimTestSimple()
+end
+
+@testset "Alogrithm2" begin
+    @test TwoDimTestPI2()
 end
