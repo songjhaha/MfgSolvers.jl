@@ -170,6 +170,8 @@ function solve_mfg_1d(Problem::MFGOneDim, ::Val{:PI2}, node::Int64, N::Int64, ma
         QR = zeros(node,N+1)
         QL_new = copy(QL)
         QR_new = copy(QR)
+        QL_tilde = copy(QL)
+        QR_tilde = copy(QR)
         M_old = copy(M)
         U_old = copy(U)
     end
@@ -190,12 +192,18 @@ function solve_mfg_1d(Problem::MFGOneDim, ::Val{:PI2}, node::Int64, N::Int64, ma
             M[:,ti] = lhs \ M[:,ti-1]
         end
 
+        # update control Q from U and M
+        for ti in 1:N+1
+            QL_tilde[:,ti] = update_Q.(max.(DL*U[:,ti],0), M[:,ti])
+            QR_tilde[:,ti] = update_Q.(min.(DR*U[:,ti],0), M[:,ti])
+        end
+
         # solve HJB equation with control and M
         for ti in N:-1:1  
             lhs = spdiagm(0=>ones(node)) - ht .* (ε .* A -
                     (spdiagm(0=>QL[:,ti])*DL + spdiagm(0=>QR[:,ti])*DR)
                     )
-            rhs = U[:,ti+1] + ht .* (0.5 .* F1.(M[:,ti+1]) .*(QL[:,ti+1].^2 + QR[:,ti+1].^2) + V +  F2.(M[:,ti+1]))
+            rhs = U[:,ti+1] + ht .* (0.5 .* F1.(M[:,ti+1]) .*(QL_tilde[:,ti+1].^2 + QR_tilde[:,ti+1].^2) + V +  F2.(M[:,ti+1]))
             U[:,ti] = lhs \ rhs
         end
 

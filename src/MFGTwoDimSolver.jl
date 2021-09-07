@@ -193,6 +193,10 @@ function solve_mfg_2d(Problem::MFGTwoDim, ::Val{:PI2}, node1::Int64, node2::Int6
         QR1_new = copy(QR1)
         QL2_new = copy(QL2)
         QR2_new = copy(QR2)
+        QL1_tilde = copy(QL1)
+        QR1_tilde = copy(QR1)
+        QL2_tilde = copy(QL2)
+        QR2_tilde = copy(QR2)
         M_old = copy(M)
         U_old = copy(U)
     end
@@ -212,13 +216,22 @@ function solve_mfg_2d(Problem::MFGTwoDim, ::Val{:PI2}, node1::Int64, node2::Int6
             M[:,ti] = lhs \ M[:,ti-1]
         end
 
+        # update Q
+        for ti in 1:N+1
+            U_t = U[:,ti]
+            QL1_tilde[:,ti] = update_Q.(max.(DL1*U_t,0) , M[:,ti])
+            QR1_tilde[:,ti] = update_Q.(min.(DR1*U_t,0) , M[:,ti])
+            QL2_tilde[:,ti] = update_Q.(max.(DL2*U_t,0) , M[:,ti])
+            QR2_tilde[:,ti] = update_Q.(min.(DR2*U_t,0) , M[:,ti])
+        end
+
         # Solve HJB with Q
         for ti in N:-1:1
             lhs = spdiagm(0=>ones(node1*node2)) -  ht .* (ε * A - 
                      (spdiagm(0=>QL1[:,ti])*DL1 + spdiagm(0=>QR1[:,ti])*DR1) -
                      (spdiagm(0=>QL2[:,ti])*DL2 + spdiagm(0=>QR2[:,ti])*DR2)
                             )
-            rhs = U[:,ti+1] + ht .*  (0.5 .*  F1.(M[:,ti+1]) .*(QL1[:,ti+1].^2 + QR1[:,ti+1].^2 + QL2[:,ti+1].^2 + QR2[:,ti+1].^2) + V + F2.(M[:,ti+1]))
+            rhs = U[:,ti+1] + ht .*  (0.5 .*  F1.(M[:,ti+1]) .*(QL1_tilde[:,ti+1].^2 + QR1_tilde[:,ti+1].^2 + QL2_tilde[:,ti+1].^2 + QR2_tilde[:,ti+1].^2) + V + F2.(M[:,ti+1]))
             U[:,ti] = lhs \ rhs
         end
 
