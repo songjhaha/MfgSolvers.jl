@@ -22,7 +22,8 @@ function solve_mfg_2d(Problem::MFGTwoDim, ::Val{:PI1}, node1::Int64, node2::Int6
         sgrid1 = Vector(xmin1:hs1:xmax1-hs1)
         sgrid2 = Vector(xmin2:hs2:xmax2-hs2)
         M, U, V, M_old, U_old = Initial_2d_state(sgrid1, sgrid2, hs1, hs2, node1, node2, N, m0, uT, cal_V)
-        QL1, QR1, QL2, QR2, QL1_new, QR1_new, QL2_new, QR2_new = Initial_2d_Q(node1, node2, N)
+        QL1, QR1, QL2, QR2 = Initial_2d_Q(node1, node2, N)
+        QL1_new, QR1_new, QL2_new, QR2_new = map(copy, (QL1, QR1, QL2, QR2))
         # Linear operators with periodic boundary
         A,DR1,DL1,DR2,DL2 = build_Linear_operator_TwoDim(node1,node2,hs1,hs2)
     end
@@ -119,7 +120,8 @@ function solve_mfg_2d(Problem::MFGTwoDim, ::Val{:PI2}, node1::Int64, node2::Int6
         sgrid1 = Vector(xmin1:hs1:xmax1-hs1)
         sgrid2 = Vector(xmin2:hs2:xmax2-hs2)
         M, U, V, M_old, U_old = Initial_2d_state(sgrid1, sgrid2, hs1, hs2, node1, node2, N, m0, uT, cal_V)
-        QL1, QR1, QL2, QR2, QL1_new, QR1_new, QL2_new, QR2_new = Initial_2d_Q(node1, node2, N)
+        QL1, QR1, QL2, QR2 = Initial_2d_Q(node1, node2, N)
+        QL1_new, QR1_new, QL2_new, QR2_new = map(copy, (QL1, QR1, QL2, QR2))
         QL1_tilde, QR1_tilde, QL2_tilde, QR2_tilde = map(copy, (QL1, QR1, QL2, QR2))
         # Linear operators with periodic boundary
         A,DR1,DL1,DR2,DL2 = build_Linear_operator_TwoDim(node1,node2,hs1,hs2)
@@ -224,11 +226,7 @@ function Initial_2d_Q(node1::Int64, node2::Int64, N::Int64)
     QR1 = zeros(node1*node2,N+1)
     QL2 = zeros(node1*node2,N+1)
     QR2 = zeros(node1*node2,N+1)
-    QL1_new = copy(QL1)
-    QR1_new = copy(QR1)
-    QL2_new = copy(QL2)
-    QR2_new = copy(QR2)
-    return (QL1, QR1, QL2, QR2, QL1_new, QR1_new, QL2_new, QR2_new)
+    return (QL1, QR1, QL2, QR2)
 end
 
 function solve_FP_2d_helper!(

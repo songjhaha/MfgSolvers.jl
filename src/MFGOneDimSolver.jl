@@ -22,7 +22,8 @@ function solve_mfg_1d(Problem::MFGOneDim, ::Val{:PI1}, node::Int64, N::Int64, ma
         sgrid = Vector(xmin:hs:xmax-hs)
         tgrid = Vector(0:ht:T)
         M, U, V, M_old, U_old = Initial_1d_state(sgrid, hs, node, N, m0, uT, cal_V)
-        QL, QR, QL_new, QR_new = Initial_1d_Q(node, N)
+        QL, QR = Initial_1d_Q(node, N)
+        QL_new, QR_new = map(copy, (QL, QR))
         # Linear operators with periodic boundary
         A, DR, DL = build_Linear_operator(node,hs)
     end
@@ -104,7 +105,8 @@ function solve_mfg_1d(Problem::MFGOneDim, ::Val{:PI2}, node::Int64, N::Int64, ma
         sgrid = Vector(xmin:hs:xmax-hs)
         tgrid = Vector(0:ht:T)
         M, U, V, M_old, U_old = Initial_1d_state(sgrid, hs, node, N, m0, uT, cal_V)
-        QL, QR, QL_new, QR_new = Initial_1d_Q(node, N)
+        QL, QR = Initial_1d_Q(node, N)
+        QL_new, QR_new = map(copy, (QL, QR))
         QL_tilde, QR_tilde = map(copy, (QL, QR))
         # Linear operators with periodic boundary
         A, DR, DL = build_Linear_operator(node,hs)
@@ -191,9 +193,7 @@ function Initial_1d_Q(node::Int64, N::Int64)
     # initial guess control QL=QR=0
     QL = zeros(node,N+1)  
     QR = zeros(node,N+1)
-    QL_new = copy(QL)
-    QR_new = copy(QR)
-    return (QL, QR, QL_new, QR_new)
+    return (QL, QR)
 end
 
 function solve_FP_1d_helper!(
