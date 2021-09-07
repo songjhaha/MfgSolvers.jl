@@ -1,5 +1,11 @@
 using LinearAlgebra, SparseArrays
 
+function L_Inf_norm(u::Array{Float64, 2})
+    norm = maximum(abs.(u))
+    return norm
+end
+
+
 function build_Linear_operator(node::Int,hs::Float64)
     temp1 = 1/hs^2
     temp2 = 1/hs

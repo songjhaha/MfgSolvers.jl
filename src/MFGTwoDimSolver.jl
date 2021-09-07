@@ -22,11 +22,6 @@ function solve_mfg_2d(Problem::MFGTwoDim, ::Val{:PI1}, node1::Int64, node2::Int6
     #     return norm
     # end
 
-    function L_r_norm(u)
-        norm = maximum(abs.(u))
-        return norm
-    end
-
     # initial 
     begin
         tgrid = Vector(0:ht:T)
@@ -94,9 +89,9 @@ function solve_mfg_2d(Problem::MFGTwoDim, ::Val{:PI1}, node1::Int64, node2::Int6
         QR2_new, QR2 = QR2, QR2_new
         
         # record history
-        L_dist_M = L_r_norm(M-M_old)
-        L_dist_U = L_r_norm(U-U_old)
-        L_dist_Q = L_r_norm([QL1-QL1_new QR1-QR1_new QL2-QL2_new QR2-QR2_new])
+        L_dist_M = L_Inf_norm(M-M_old)
+        L_dist_U = L_Inf_norm(U-U_old)
+        L_dist_Q = L_Inf_norm([QL1-QL1_new QR1-QR1_new QL2-QL2_new QR2-QR2_new])
         append!(hist_m, L_dist_M)
         append!(hist_u, L_dist_U)
         append!(hist_q, L_dist_Q)
@@ -164,11 +159,6 @@ function solve_mfg_2d(Problem::MFGTwoDim, ::Val{:PI2}, node1::Int64, node2::Int6
     #     norm = norm^(1/r)
     #     return norm
     # end
-
-    function L_r_norm(u)
-        norm = maximum(abs.(u))
-        return norm
-    end
 
     # initial 
     begin
@@ -250,9 +240,9 @@ function solve_mfg_2d(Problem::MFGTwoDim, ::Val{:PI2}, node1::Int64, node2::Int6
         QR2_new, QR2 = QR2, QR2_new
         
         # record history
-        L_dist_M = L_r_norm(M-M_old)
-        L_dist_U = L_r_norm(U-U_old)
-        L_dist_Q = L_r_norm([QL1-QL1_new QR1-QR1_new QL2-QL2_new QR2-QR2_new])
+        L_dist_M = L_Inf_norm(M-M_old)
+        L_dist_U = L_Inf_norm(U-U_old)
+        L_dist_Q = L_Inf_norm([QL1-QL1_new QR1-QR1_new QL2-QL2_new QR2-QR2_new])
         append!(hist_m, L_dist_M)
         append!(hist_u, L_dist_U)
         append!(hist_q, L_dist_Q)
