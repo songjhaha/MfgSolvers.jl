@@ -13,7 +13,7 @@ function OneDimTest1()
     F2(m) = m
     update_Q(Du,m) = Du / F1(m)
     problem = MFGOneDim(xmin,xmax,T,ε,m0,uT,V,F1,F2,update_Q)
-    re = solve_mfg(problem;verbose=false)
+    re = solve_mfg(problem;node=50, N=100, verbose=false)
     return re.converge
 end
 
@@ -37,7 +37,7 @@ function OneDimTest2()
         return out
     end
     problem = MFGOneDim(xmin,xmax,T,ε,m0,uT,V,F1,F2,update_Q)
-    re = solve_mfg(problem;verbose=false)
+    re = solve_mfg(problem;node=50, N=100, verbose=false)
     return re.converge
 end
 
@@ -52,7 +52,7 @@ function TwoDimTest3()
     F2(m) = m
     update_Q(Du,m) = Du / F1(m)
     problem = MFGTwoDim(xmin1,xmax1,xmin2,xmax2,T,ε,m0,uT,V,F1,F2,update_Q)
-    re = solve_mfg(problem;N=100,verbose=false)
+    re = solve_mfg(problem;node1=50, node2=50, N=100, verbose=false)
     return re.converge
 end
 
@@ -67,7 +67,7 @@ function TwoDimTest4()
     F2(m) = 0
     update_Q(Du,m) = Du / F1(m)
     problem = MFGTwoDim(xmin1,xmax1,xmin2,xmax2,T,ε,m0,uT,V,F1,F2,update_Q)
-    re = solve_mfg(problem;N=50,verbose=false)
+    re = solve_mfg(problem;node1=50, node2=50, N=50, verbose=false)
     return re.converge
 end
 
@@ -84,7 +84,7 @@ function TwoDimTestSimple()
     F2(m) = 0
     update_Q(Du,m) = Du / F1(m)
     problem = MFGTwoDim(xmin1,xmax1,xmin2,xmax2,T,ε,m0,uT,V,F1,F2,update_Q)
-    re = solve_mfg(problem;N=100,verbose=false)
+    re = solve_mfg(problem;node1=50, node2=50, N=100, verbose=false)
     return re.converge
 end
 
@@ -100,7 +100,7 @@ function OneDimTestPI2()
     F2(m) = m
     update_Q(Du,m) = Du / F1(m)
     problem = MFGOneDim(xmin,xmax,T,ε,m0,uT,V,F1,F2,update_Q)
-    re = solve_mfg(problem; method=:PI2, verbose=false)
+    re = solve_mfg(problem; method=:PI2, node=50, N=100, verbose=false)
     return re.converge
 end
 
@@ -116,7 +116,7 @@ function TwoDimTestPI2()
     F2(m) = 0
     update_Q(Du,m) = Du / F1(m)
     problem = MFGTwoDim(xmin1,xmax1,xmin2,xmax2,T,ε,m0,uT,V,F1,F2,update_Q)
-    re = solve_mfg(problem; method=:PI2, N=100, verbose=false)
+    re = solve_mfg(problem; method=:PI2, node1=50, node2=50, N=100, verbose=false)
     return re.converge
 end
 
