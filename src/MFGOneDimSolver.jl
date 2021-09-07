@@ -182,13 +182,8 @@ function Initial_1d_state(
     U = zeros(node,N+1)
     U[:,end] = uT.(sgrid) # final cost
     V = cal_V.(sgrid) # potential
-    QL = zeros(node,N+1)
-    QR = zeros(node,N+1)
-    QL_new = copy(QL)
-    QR_new = copy(QR)
     M_old = copy(M)
-    U_old = copy(U)
-    
+    U_old = copy(U)  
     return (M, U, V, M_old, U_old)
 end
 
