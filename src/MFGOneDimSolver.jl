@@ -40,7 +40,7 @@ function solve_mfg_1d(Problem::MFGOneDim, ::Val{:PI1}, node::Int64, N::Int64, ma
     end
 
     # Start Policy Iteration
-    @inbounds for iter in 1:maxit
+    for iter in 1:maxit
         solve_FP!(M, QL, QR)
 
         solve_HJB!(U, M, QL, QR)     
@@ -124,7 +124,7 @@ function solve_mfg_1d(Problem::MFGOneDim, ::Val{:PI2}, node::Int64, N::Int64, ma
     end
 
     # Start Policy Iteration
-    @inbounds for iter in 1:maxit
+    for iter in 1:maxit
         solve_FP!(M, QL, QR)
 
         update_control!(QL_tilde, QR_tilde, U, M, DL, DR, update_Q)
@@ -201,7 +201,7 @@ function solve_FP_1d_helper!(
     N::Int64, ht::Float64, ε::Float64, A::SparseMatrixCSC{Float64,Int64},
     DL::SparseMatrixCSC{Float64,Int64}, DR::SparseMatrixCSC{Float64,Int64})
     # solve FP equation with control
-    for ti in 2:N+1
+    @inbounds for ti in 2:N+1
         lhs =  I - ht .* (ε .* A + (DR*spdiagm(0=>QL[:,ti]) + DL*spdiagm(0=>QR[:,ti])))
         M[:,ti] = lhs \ M[:,ti-1]
     end
@@ -214,7 +214,7 @@ function solve_HJB_1d_helper!(
     DL::SparseMatrixCSC{Float64,Int64}, DR::SparseMatrixCSC{Float64,Int64},
     F1::Function, F2::Function)
     # solve HJB equation with control and M
-    for ti in N:-1:1  
+    @inbounds for ti in N:-1:1  
         lhs = I - ht .* (ε .* A - (spdiagm(0=>QL[:,ti])*DL + spdiagm(0=>QR[:,ti])*DR))
         rhs = U[:,ti+1] + ht .* (0.5 .* F1.(M[:,ti+1]) .*(QL[:,ti+1].^2 + QR[:,ti+1].^2) + V +  F2.(M[:,ti+1]))
         U[:,ti] = lhs \ rhs
@@ -241,7 +241,7 @@ function compute_res_1d_helper(
     DL::SparseMatrixCSC{Float64,Int64}, DR::SparseMatrixCSC{Float64,Int64},
     F1::Function, F2::Function, hs::Float64)
     resFP, resHJB = 0, 0
-    for ti in 2:N+1
+    @inbounds for ti in 2:N+1
         lhs =  I - ht .* (ε .* A + 
                 (DR*spdiagm(0=>QL[:,ti])+DL*spdiagm(0=>QR[:,ti]))
                 )
@@ -250,7 +250,7 @@ function compute_res_1d_helper(
     end
     resFP = sqrt(hs*ht*resFP)
 
-    for ti in N:-1:1  
+    @inbounds for ti in N:-1:1  
         lhs = I - ht .* (ε .* A -
                 (spdiagm(0=>QL[:,ti])*DL+spdiagm(0=>QR[:,ti])*DR)
                 )
