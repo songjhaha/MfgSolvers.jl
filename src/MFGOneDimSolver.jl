@@ -181,7 +181,7 @@ function Initial_1d_state(
     M[:,1] = M0  # initial distribution
     U = zeros(node,N+1)
     U[:,end] = uT.(sgrid) # final cost
-    V = cal_V.(sgrid) # potential
+    V = float(cal_V.(sgrid)) # potential
     M_old = copy(M)
     U_old = copy(U)  
     return (M, U, V, M_old, U_old)
