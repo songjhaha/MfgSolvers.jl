@@ -25,7 +25,7 @@ function solve_mfg_1d(Problem::MFGOneDim, ::Val{:PI1}, node::Int64, N::Int64, ma
         QL, QR = Initial_1d_Q(node, N)
         QL_new, QR_new = map(copy, (QL, QR))
         # Linear operators with periodic boundary
-        A, DR, DL = build_Linear_operator(node,hs)
+        A, DL, DR = build_Linear_operator(node,hs)
     end
 
     function solve_FP!(M, QL, QR; N=N, ht=ht, ε=ε, A=A, DL=DL, DR=DR)
@@ -109,7 +109,7 @@ function solve_mfg_1d(Problem::MFGOneDim, ::Val{:PI2}, node::Int64, N::Int64, ma
         QL_new, QR_new = map(copy, (QL, QR))
         QL_tilde, QR_tilde = map(copy, (QL, QR))
         # Linear operators with periodic boundary
-        A, DR, DL = build_Linear_operator(node,hs)
+        A, DL, DR = build_Linear_operator(node,hs)
     end
 
 

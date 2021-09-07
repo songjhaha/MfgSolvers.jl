@@ -13,30 +13,27 @@ function build_Linear_operator(node::Int,hs::Float64)
                     1=>fill(temp1,node-1), 
                     -1=>fill(temp1,node-1),
                     node-1=>fill(temp1,1),
-                    -(node-1)=>fill(temp1,1)
-                    )
-
-    DR = spdiagm(0=>fill(-temp2,node), 
-                1=>fill(temp2,node-1), 
-                -(node-1)=>fill(temp2,1))
+                    -(node-1)=>fill(temp1,1))
     DL = spdiagm(0=>fill(temp2,node), 
                 -1=>fill(-temp2,node-1), 
                 node-1=>fill(-temp2,1))
-    return (Δ,DR,DL)
+    DR = spdiagm(0=>fill(-temp2,node), 
+                1=>fill(temp2,node-1), 
+                -(node-1)=>fill(temp2,1))
+    return (Δ,DL,DR)
 end
 
 function build_Linear_operator_TwoDim(node1::Int,node2::Int, hs1::Float64,hs2::Float64)
-    Δ1,DR1,DL1 = build_Linear_operator(node1,hs1)
-    Δ2,DR2,DL2 = build_Linear_operator(node2,hs2)
+    Δ1,DL1,DR1 = build_Linear_operator(node1,hs1)
+    Δ2,DL2,DR2 = build_Linear_operator(node2,hs2)
     eye1 = sparse(I,node1,node1)
     eye2 = sparse(I,node2,node2)
     Δ = kron(Δ2,eye1) + kron(eye2,Δ1)
-
-    DR1 = kron(eye2,DR1)
     DL1 = kron(eye2,DL1)
-    DR2 = kron(DR2,eye1)
+    DR1 = kron(eye2,DR1)
     DL2 = kron(DL2,eye1)
-    return (Δ,DR1,DL1,DR2,DL2)
+    DR2 = kron(DR2,eye1)
+    return (Δ,DL1,DR1,DL2,DR2)
 end
 
 abstract type MFGProblem end
