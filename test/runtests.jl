@@ -86,7 +86,7 @@ function TwoDimTestPI2()
     update_Q(Du,m) = Du / F1(m)
     problem = MFGTwoDim(xmin1,xmax1,xmin2,xmax2,T,ε,m0,uT,V,F1,F2,update_Q)
     re = solve_mfg(problem; method=:PI2, node1=50, node2=50, N=100, verbose=true)
-    return re.converge && iter==13
+    return re.converge && re.iter==13
 end
 
 
