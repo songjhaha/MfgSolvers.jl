@@ -48,7 +48,7 @@ function solve_mfg_2d(Problem::MFGTwoDim, ::Val{:PI1}, node1::Int64, node2::Int6
         solve_HJB!(U, M, Q)
         update_control!(Q_new, U, M, D, update_Q)
     
-        resFP, resHJB = compute_res(U, M, Q)
+        resFP, resHJB = compute_res(U, M, Q_new)
         Q, Q_new = Q_new, Q
         
         # record history
@@ -136,7 +136,7 @@ function solve_mfg_2d(Problem::MFGTwoDim, ::Val{:PI2}, node1::Int64, node2::Int6
         solve_HJB!(U, M, Q_tilde)
         update_control!(Q_new, U, M, D, update_Q)
 
-        resFP, resHJB = compute_res(U, M, Q)
+        resFP, resHJB = compute_res(U, M, Q_new)
         Q, Q_new = Q_new, Q
         
         # record history

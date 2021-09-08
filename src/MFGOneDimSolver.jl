@@ -48,7 +48,7 @@ function solve_mfg_1d(Problem::MFGOneDim, ::Val{:PI1}, node::Int64, N::Int64, ma
         solve_HJB!(U, M, Q)     
         update_control!(Q_new, U, M, D, update_Q)
         
-        resFP, resHJB = compute_res(U, M, Q)
+        resFP, resHJB = compute_res(U, M, Q_new)
         Q, Q_new = Q_new, Q
 
         # record history
@@ -135,7 +135,7 @@ function solve_mfg_1d(Problem::MFGOneDim, ::Val{:PI2}, node::Int64, N::Int64, ma
         solve_HJB!(U, M, Q_tilde)     
         update_control!(Q_new, U, M, D, update_Q)
 
-        resFP, resHJB = compute_res(U, M, Q)
+        resFP, resHJB = compute_res(U, M, Q_new)
         Q, Q_new = Q_new, Q
 
         # record history
