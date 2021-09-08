@@ -14,7 +14,7 @@ function OneDimTest1()
     update_Q(Du,m) = Du / F1(m)
     problem = MFGOneDim(xmin,xmax,T,ε,m0,uT,V,F1,F2,update_Q)
     re = solve_mfg(problem;node=50, N=100, verbose=true)
-    return re.converge
+    return re.converge && re.iter==14
 end
 
 function OneDimTest2()
@@ -38,7 +38,7 @@ function OneDimTest2()
     end
     problem = MFGOneDim(xmin,xmax,T,ε,m0,uT,V,F1,F2,update_Q)
     re = solve_mfg(problem;node=50, N=100, verbose=true)
-    return re.converge
+    return re.converge && re.iter==14
 end
 
 function TwoDimTestSimple()
@@ -54,7 +54,7 @@ function TwoDimTestSimple()
     update_Q(Du,m) = Du / F1(m)
     problem = MFGTwoDim(xmin1,xmax1,xmin2,xmax2,T,ε,m0,uT,V,F1,F2,update_Q)
     re = solve_mfg(problem;node1=50, node2=50, N=100, verbose=true)
-    return re.converge
+    return re.converge && re.iter==11
 end
 
 function OneDimTestPI2()
@@ -70,7 +70,7 @@ function OneDimTestPI2()
     update_Q(Du,m) = Du / F1(m)
     problem = MFGOneDim(xmin,xmax,T,ε,m0,uT,V,F1,F2,update_Q)
     re = solve_mfg(problem; method=:PI2, node=50, N=100, verbose=true)
-    return re.converge
+    return re.converge && re.iter==11
 end
 
 function TwoDimTestPI2()
@@ -86,7 +86,7 @@ function TwoDimTestPI2()
     update_Q(Du,m) = Du / F1(m)
     problem = MFGTwoDim(xmin1,xmax1,xmin2,xmax2,T,ε,m0,uT,V,F1,F2,update_Q)
     re = solve_mfg(problem; method=:PI2, node1=50, node2=50, N=100, verbose=true)
-    return re.converge
+    return re.converge && iter==13
 end
 
 
