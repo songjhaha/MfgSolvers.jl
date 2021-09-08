@@ -43,8 +43,8 @@ struct Solver_history
     hist_q::Vector{Float64}
     hist_m::Vector{Float64}
     hist_u::Vector{Float64}
-    residual_norm_FP::Float64
-    residual_norm_HJB::Float64
+    residual_FP::Vector{Float64}
+    residual_HJB::Vector{Float64}
 end
 
 struct MFGOneDim<:MFGProblem
@@ -101,8 +101,8 @@ end
 function Base.show(io::IO, x::MFGResult)
     println(io, "Converge: ",  x.converge)
     println(io, "iterations: ", x.iter)
-    println(io, "FP_Residual: ",  x.history.residual_norm_FP)
-    println(io, "HJB_Residual: ",  x.history.residual_norm_HJB)
+    println(io, "FP_Residual: ",  x.history.residual_FP[end])
+    println(io, "HJB_Residual: ",  x.history.residual_HJB[end])
 end
 
 Base.show(io::IO, m::MIME"text/plain", x::MFGResult) = show(io, x)

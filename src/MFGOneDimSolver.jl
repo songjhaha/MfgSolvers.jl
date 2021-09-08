@@ -12,6 +12,8 @@ function solve_mfg_1d(Problem::MFGOneDim, ::Val{:PI1}, node::Int64, N::Int64, ma
         hist_q = Float64[]
         hist_m = Float64[]
         hist_u = Float64[]
+        residual_FP = Float64[]
+        residual_HJB = Float64[]
         resFP = 0.0
         resHJB = 0.0
         converge = false
@@ -43,11 +45,10 @@ function solve_mfg_1d(Problem::MFGOneDim, ::Val{:PI1}, node::Int64, N::Int64, ma
     # Start Policy Iteration
     for iter in 1:maxit
         solve_FP!(M, Q)
-
         solve_HJB!(U, M, Q)     
-
         update_control!(Q_new, U, M, D, update_Q)
-          
+        
+        resFP, resHJB = compute_res(U, M, Q)
         Q, Q_new = Q_new, Q
 
         # record history
@@ -57,6 +58,8 @@ function solve_mfg_1d(Problem::MFGOneDim, ::Val{:PI1}, node::Int64, N::Int64, ma
         append!(hist_m, L_dist_M)
         append!(hist_u, L_dist_U)
         append!(hist_q, L_dist_Q)
+        append!(residual_FP, resFP)
+        append!(residual_HJB, resHJB)
 
 
         verbose && println("iteraton $(iter), ||Q_{k+1} - Q_{k}|| = $(L_dist_Q)")
@@ -68,8 +71,7 @@ function solve_mfg_1d(Problem::MFGOneDim, ::Val{:PI1}, node::Int64, N::Int64, ma
         if L_dist_Q < 1e-8
             converge = true
             verbose && println("converge!Iteration $iter")
-
-            resFP, resHJB = compute_res(U, M, Q)
+       
             verbose && println("M L2 residual $resFP")
             verbose && println("U L2 residual $resHJB")
             break            
@@ -78,7 +80,7 @@ function solve_mfg_1d(Problem::MFGOneDim, ::Val{:PI1}, node::Int64, N::Int64, ma
             println("error! not converge!")
         end
     end
-    history = Solver_history(hist_q,hist_m,hist_u,resFP,resHJB)
+    history = Solver_history(hist_q,hist_m,hist_u,residual_FP,residual_HJB)
     result = MFGOneDim_result(converge,M,U,Q,sgrid,tgrid,length(hist_q),history)
 
     return result
@@ -94,6 +96,8 @@ function solve_mfg_1d(Problem::MFGOneDim, ::Val{:PI2}, node::Int64, N::Int64, ma
         hist_q = Float64[]
         hist_m = Float64[]
         hist_u = Float64[]
+        residual_FP = Float64[]
+        residual_HJB = Float64[]
         resFP = 0.0
         resHJB = 0.0
         converge = false
@@ -127,13 +131,11 @@ function solve_mfg_1d(Problem::MFGOneDim, ::Val{:PI2}, node::Int64, N::Int64, ma
     # Start Policy Iteration
     for iter in 1:maxit
         solve_FP!(M, Q)
-
         update_control!(Q_tilde, U, M, D, update_Q)
-
         solve_HJB!(U, M, Q_tilde)     
-
         update_control!(Q_new, U, M, D, update_Q)
-          
+
+        resFP, resHJB = compute_res(U, M, Q)
         Q, Q_new = Q_new, Q
 
         # record history
@@ -143,7 +145,8 @@ function solve_mfg_1d(Problem::MFGOneDim, ::Val{:PI2}, node::Int64, N::Int64, ma
         append!(hist_m, L_dist_M)
         append!(hist_u, L_dist_U)
         append!(hist_q, L_dist_Q)
-
+        append!(residual_FP, resFP)
+        append!(residual_HJB, resHJB)
 
         verbose && println("iteraton $(iter), ||Q_{k+1} - Q_{k}|| = $(L_dist_Q)")
 
@@ -155,7 +158,6 @@ function solve_mfg_1d(Problem::MFGOneDim, ::Val{:PI2}, node::Int64, N::Int64, ma
             converge = true
             verbose && println("converge!Iteration $iter")
 
-            resFP, resHJB = compute_res(U, M, Q)
             verbose && println("M L2 residual $resFP")
             verbose && println("U L2 residual $resHJB")
             break            
@@ -164,7 +166,7 @@ function solve_mfg_1d(Problem::MFGOneDim, ::Val{:PI2}, node::Int64, N::Int64, ma
             println("error! not converge!")
         end
     end
-    history = Solver_history(hist_q,hist_m,hist_u,resFP,resHJB)
+    history = Solver_history(hist_q,hist_m,hist_u,residual_FP,residual_HJB)
     result = MFGOneDim_result(converge,M,U,Q,sgrid,tgrid,length(hist_q),history)
 
     return result

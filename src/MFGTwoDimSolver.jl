@@ -11,6 +11,8 @@ function solve_mfg_2d(Problem::MFGTwoDim, ::Val{:PI1}, node1::Int64, node2::Int6
         hist_q = Float64[]
         hist_m = Float64[]
         hist_u = Float64[]
+        residual_FP = Float64[]
+        residual_HJB = Float64[]
         resFP = 0.0
         resHJB = 0.0
         converge = false
@@ -40,14 +42,13 @@ function solve_mfg_2d(Problem::MFGTwoDim, ::Val{:PI1}, node1::Int64, node2::Int6
         compute_res_helper(U, M, Q, N, ht, ε, V, A, D, F1, F2, hs1, hs2)
     end
 
-    # println("start solve with ε=$(ε)")
+    # println("start Policy Iteration")
     for iter in 1:maxit
         solve_FP!(M, Q)
         solve_HJB!(U, M, Q)
         update_control!(Q_new, U, M, D, update_Q)
-        
-
-
+    
+        resFP, resHJB = compute_res(U, M, Q)
         Q, Q_new = Q_new, Q
         
         # record history
@@ -57,6 +58,8 @@ function solve_mfg_2d(Problem::MFGTwoDim, ::Val{:PI1}, node1::Int64, node2::Int6
         append!(hist_m, L_dist_M)
         append!(hist_u, L_dist_U)
         append!(hist_q, L_dist_Q)
+        append!(residual_FP, resFP)
+        append!(residual_HJB, resHJB)
 
         verbose && println("iteraton $(iter), ||Q_{k+1} - Q_{k}|| = $(L_dist_Q)")
 
@@ -67,7 +70,7 @@ function solve_mfg_2d(Problem::MFGTwoDim, ::Val{:PI1}, node1::Int64, node2::Int6
             converge = true
             verbose && println("converge!Iteration $iter")
 
-            resFP, resHJB = compute_res(U, M, Q)
+            
             verbose && println("M L2 residual $resFP")
             verbose && println("U L2 residual $resHJB")
             break
@@ -76,7 +79,7 @@ function solve_mfg_2d(Problem::MFGTwoDim, ::Val{:PI1}, node1::Int64, node2::Int6
             println("error! not converge!")
         end
     end
-    history = Solver_history(hist_q,hist_m,hist_u,resFP,resHJB)
+    history = Solver_history(hist_q,hist_m,hist_u,residual_FP,residual_HJB)
     M = reshape(M,node1,node2,N+1)
     U = reshape(U,node1,node2,N+1)
     result = MFGTwoDim_result(converge,M,U,Q,sgrid1,sgrid2,tgrid,length(hist_q),history)
@@ -92,6 +95,8 @@ function solve_mfg_2d(Problem::MFGTwoDim, ::Val{:PI2}, node1::Int64, node2::Int6
         hist_q = Float64[]
         hist_m = Float64[]
         hist_u = Float64[]
+        residual_FP = Float64[]
+        residual_HJB = Float64[]
         resFP = 0.0
         resHJB = 0.0
         converge = false
@@ -123,15 +128,15 @@ function solve_mfg_2d(Problem::MFGTwoDim, ::Val{:PI2}, node1::Int64, node2::Int6
         compute_res_helper(U, M, Q, N, ht, ε, V, A, D, F1, F2, hs1, hs2)
     end
 
-    
 
-    # println("start solve with ε=$(ε)")
+    # println("start Policy Iteration")
     for iter in 1:maxit
         solve_FP!(M, Q)
         update_control!(Q_tilde, U, M, D, update_Q)
         solve_HJB!(U, M, Q_tilde)
         update_control!(Q_new, U, M, D, update_Q)
 
+        resFP, resHJB = compute_res(U, M, Q)
         Q, Q_new = Q_new, Q
         
         # record history
@@ -141,6 +146,8 @@ function solve_mfg_2d(Problem::MFGTwoDim, ::Val{:PI2}, node1::Int64, node2::Int6
         append!(hist_m, L_dist_M)
         append!(hist_u, L_dist_U)
         append!(hist_q, L_dist_Q)
+        append!(residual_FP, resFP)
+        append!(residual_HJB, resHJB)
 
         verbose && println("iteraton $(iter), ||Q_{k+1} - Q_{k}|| = $(L_dist_Q)")
 
@@ -151,7 +158,6 @@ function solve_mfg_2d(Problem::MFGTwoDim, ::Val{:PI2}, node1::Int64, node2::Int6
             converge = true
             verbose && println("converge!Iteration $iter")
 
-            resFP, resHJB = compute_res(U, M, Q)
             verbose && println("M L2 residual $resFP")
             verbose && println("U L2 residual $resHJB")
             break
@@ -160,7 +166,7 @@ function solve_mfg_2d(Problem::MFGTwoDim, ::Val{:PI2}, node1::Int64, node2::Int6
             println("error! not converge!")
         end
     end
-    history = Solver_history(hist_q,hist_m,hist_u,resFP,resHJB)
+    history = Solver_history(hist_q,hist_m,hist_u,residual_FP,residual_HJB)
     M = reshape(M,node1,node2,N+1)
     U = reshape(U,node1,node2,N+1)
     result = MFGTwoDim_result(converge,M,U,Q,sgrid1,sgrid2,tgrid,length(hist_q),history)
