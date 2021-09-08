@@ -22,39 +22,38 @@ function solve_mfg_1d(Problem::MFGOneDim, ::Val{:PI1}, node::Int64, N::Int64, ma
         sgrid = Vector(xmin:hs:xmax-hs)
         tgrid = Vector(0:ht:T)
         M, U, V, M_old, U_old = Initial_1d_state(sgrid, hs, node, N, m0, uT, cal_V)
-        QL, QR = Initial_1d_Q(node, N)
-        QL_new, QR_new = map(copy, (QL, QR))
+        Q = Initial_1d_Q(node, N)
+        Q_new = map(copy, Q)
         # Linear operators with periodic boundary
-        A, DL, DR = build_Linear_operator(node,hs)
+        A, D = build_Linear_operator(node,hs)
     end
 
-    function solve_FP!(M, QL, QR; N=N, ht=ht, ε=ε, A=A, DL=DL, DR=DR)
-        solve_FP_1d_helper!(M, QL, QR, N, ht, ε, A, DL, DR)
+    function solve_FP!(M, Q; N=N, ht=ht, ε=ε, A=A, D=D)
+        solve_FP_helper!(M, Q, N, ht, ε, A, D)
     end
 
-    function solve_HJB!(U, M, QL, QR; N=N, ht=ht, ε=ε, V=V, A=A, DL=DL, DR=DR, F1=F1, F2=F2)
-        solve_HJB_1d_helper!(U, M, QL, QR, N, ht, ε, V, A, DL, DR, F1, F2)
+    function solve_HJB!(U, M, Q; N=N, ht=ht, ε=ε, V=V, A=A, D=D, F1=F1, F2=F2)
+        solve_HJB_helper!(U, M, Q, N, ht, ε, V, A, D, F1, F2)
     end
 
-    function compute_res(U, M, QL, QR; N=N, ht=ht, ε=ε, V=V, A=A, DL=DL, DR=DR, F1=F1, F2=F2, hs=hs)
-        compute_res_1d_helper(U, M, QL, QR, N, ht, ε, V, A, DL, DR, F1, F2, hs)
+    function compute_res(U, M, Q; N=N, ht=ht, ε=ε, V=V, A=A, D=D, F1=F1, F2=F2, hs=hs)
+        compute_res_helper(U, M, Q, N, ht, ε, V, A, D, F1, F2, hs)
     end
 
     # Start Policy Iteration
     for iter in 1:maxit
-        solve_FP!(M, QL, QR)
+        solve_FP!(M, Q)
 
-        solve_HJB!(U, M, QL, QR)     
+        solve_HJB!(U, M, Q)     
 
-        update_control!(QL_new, QR_new, U, M, DL, DR, update_Q)
+        update_control!(Q_new, U, M, D, update_Q)
           
-        QL_new, QL = QL, QL_new
-        QR_new, QR = QR, QR_new
+        Q, Q_new = Q_new, Q
 
         # record history
         L_dist_M = L_Inf_norm(M-M_old)
         L_dist_U = L_Inf_norm(U-U_old)
-        L_dist_Q = L_Inf_norm([QL-QL_new; QR-QR_new])
+        L_dist_Q = map((q,q_new)->L_Inf_norm(q-q_new), Q, Q_new) |> maximum
         append!(hist_m, L_dist_M)
         append!(hist_u, L_dist_U)
         append!(hist_q, L_dist_Q)
@@ -70,7 +69,7 @@ function solve_mfg_1d(Problem::MFGOneDim, ::Val{:PI1}, node::Int64, N::Int64, ma
             converge = true
             verbose && println("converge!Iteration $iter")
 
-            resFP, resHJB = compute_res(U, M, QL, QR)
+            resFP, resHJB = compute_res(U, M, Q)
             verbose && println("M L2 residual $resFP")
             verbose && println("U L2 residual $resHJB")
             break            
@@ -80,7 +79,7 @@ function solve_mfg_1d(Problem::MFGOneDim, ::Val{:PI1}, node::Int64, N::Int64, ma
         end
     end
     history = Solver_history(hist_q,hist_m,hist_u,resFP,resHJB)
-    result = MFGOneDim_result(converge,M,U,QL,QR,sgrid,tgrid,length(hist_q),history)
+    result = MFGOneDim_result(converge,M,U,Q,sgrid,tgrid,length(hist_q),history)
 
     return result
 end
@@ -105,43 +104,42 @@ function solve_mfg_1d(Problem::MFGOneDim, ::Val{:PI2}, node::Int64, N::Int64, ma
         sgrid = Vector(xmin:hs:xmax-hs)
         tgrid = Vector(0:ht:T)
         M, U, V, M_old, U_old = Initial_1d_state(sgrid, hs, node, N, m0, uT, cal_V)
-        QL, QR = Initial_1d_Q(node, N)
-        QL_new, QR_new = map(copy, (QL, QR))
-        QL_tilde, QR_tilde = map(copy, (QL, QR))
+        Q = Initial_1d_Q(node, N)
+        Q_new = map(copy, Q)
+        Q_tilde = map(copy, Q)
         # Linear operators with periodic boundary
-        A, DL, DR = build_Linear_operator(node,hs)
+        A, D = build_Linear_operator(node,hs)
     end
 
 
-    function solve_FP!(M, QL, QR; N=N, ht=ht, ε=ε, A=A, DL=DL, DR=DR)
-        solve_FP_1d_helper!(M, QL, QR, N, ht, ε, A, DL, DR)
+    function solve_FP!(M, Q; N=N, ht=ht, ε=ε, A=A, D=D)
+        solve_FP_helper!(M, Q, N, ht, ε, A, D)
     end
 
-    function solve_HJB!(U, M, QL, QR; N=N, ht=ht, ε=ε, V=V, A=A, DL=DL, DR=DR, F1=F1, F2=F2)
-        solve_HJB_1d_helper!(U, M, QL, QR, N, ht, ε, V, A, DL, DR, F1, F2)
+    function solve_HJB!(U, M, Q; N=N, ht=ht, ε=ε, V=V, A=A, D=D, F1=F1, F2=F2)
+        solve_HJB_helper!(U, M, Q, N, ht, ε, V, A, D, F1, F2)
     end
 
-    function compute_res(U, M, QL, QR; N=N, ht=ht, ε=ε, V=V, A=A, DL=DL, DR=DR, F1=F1, F2=F2, hs=hs)
-        compute_res_1d_helper(U, M, QL, QR, N, ht, ε, V, A, DL, DR, F1, F2, hs)
+    function compute_res(U, M, Q; N=N, ht=ht, ε=ε, V=V, A=A, D=D, F1=F1, F2=F2, hs=hs)
+        compute_res_helper(U, M, Q, N, ht, ε, V, A, D, F1, F2, hs)
     end
 
     # Start Policy Iteration
     for iter in 1:maxit
-        solve_FP!(M, QL, QR)
+        solve_FP!(M, Q)
 
-        update_control!(QL_tilde, QR_tilde, U, M, DL, DR, update_Q)
+        update_control!(Q_tilde, U, M, D, update_Q)
 
-        solve_HJB!(U, M, QL_tilde, QR_tilde)     
+        solve_HJB!(U, M, Q_tilde)     
 
-        update_control!(QL_new, QR_new, U, M, DL, DR, update_Q)
+        update_control!(Q_new, U, M, D, update_Q)
           
-        QL_new, QL = QL, QL_new
-        QR_new, QR = QR, QR_new
+        Q, Q_new = Q_new, Q
 
         # record history
         L_dist_M = L_Inf_norm(M-M_old)
         L_dist_U = L_Inf_norm(U-U_old)
-        L_dist_Q = L_Inf_norm([QL-QL_new; QR-QR_new])
+        L_dist_Q = map((q,q_new)->L_Inf_norm(q-q_new), Q, Q_new) |> maximum
         append!(hist_m, L_dist_M)
         append!(hist_u, L_dist_U)
         append!(hist_q, L_dist_Q)
@@ -157,7 +155,7 @@ function solve_mfg_1d(Problem::MFGOneDim, ::Val{:PI2}, node::Int64, N::Int64, ma
             converge = true
             verbose && println("converge!Iteration $iter")
 
-            resFP, resHJB = compute_res(U, M, QL, QR)
+            resFP, resHJB = compute_res(U, M, Q)
             verbose && println("M L2 residual $resFP")
             verbose && println("U L2 residual $resHJB")
             break            
@@ -167,7 +165,7 @@ function solve_mfg_1d(Problem::MFGOneDim, ::Val{:PI2}, node::Int64, N::Int64, ma
         end
     end
     history = Solver_history(hist_q,hist_m,hist_u,resFP,resHJB)
-    result = MFGOneDim_result(converge,M,U,QL,QR,sgrid,tgrid,length(hist_q),history)
+    result = MFGOneDim_result(converge,M,U,Q,sgrid,tgrid,length(hist_q),history)
 
     return result
 end
@@ -193,70 +191,5 @@ function Initial_1d_Q(node::Int64, N::Int64)
     # initial guess control QL=QR=0
     QL = zeros(node,N+1)  
     QR = zeros(node,N+1)
-    return (QL, QR)
-end
-
-function solve_FP_1d_helper!(
-    M::Matrix{Float64}, QL::Matrix{Float64}, QR::Matrix{Float64}, 
-    N::Int64, ht::Float64, ε::Float64, A::SparseMatrixCSC{Float64,Int64},
-    DL::SparseMatrixCSC{Float64,Int64}, DR::SparseMatrixCSC{Float64,Int64})
-    # solve FP equation with control
-    @inbounds for ti in 2:N+1
-        lhs =  I - ht .* (ε .* A + (DR*spdiagm(0=>QL[:,ti]) + DL*spdiagm(0=>QR[:,ti])))
-        M[:,ti] = lhs \ M[:,ti-1]
-    end
-    return nothing
-end
-
-function solve_HJB_1d_helper!(
-    U::Matrix{Float64}, M::Matrix{Float64}, QL::Matrix{Float64}, QR::Matrix{Float64}, 
-    N::Int64, ht::Float64, ε::Float64, V::Vector{Float64}, A::SparseMatrixCSC{Float64,Int64},
-    DL::SparseMatrixCSC{Float64,Int64}, DR::SparseMatrixCSC{Float64,Int64},
-    F1::Function, F2::Function)
-    # solve HJB equation with control and M
-    @inbounds for ti in N:-1:1  
-        lhs = I - ht .* (ε .* A - (spdiagm(0=>QL[:,ti])*DL + spdiagm(0=>QR[:,ti])*DR))
-        rhs = U[:,ti+1] + ht .* (0.5 .* F1.(M[:,ti+1]) .*(QL[:,ti+1].^2 + QR[:,ti+1].^2) + V +  F2.(M[:,ti+1]))
-        U[:,ti] = lhs \ rhs
-    end
-    return nothing
-end
-
-function update_control!(
-    QL_new::Matrix{Float64}, QR_new::Matrix{Float64},
-    U::Matrix{Float64}, M::Matrix{Float64},
-    DL::SparseMatrixCSC{Float64,Int64}, 
-    DR::SparseMatrixCSC{Float64,Int64},
-    update_Q::Function)
-
-    # update control Q from U and M
-    QL_new .= update_Q.(max.(DL*U,0), M)
-    QR_new .= update_Q.(min.(DR*U,0), M)
-    return nothing
-end
-
-function compute_res_1d_helper(
-    U::Matrix{Float64}, M::Matrix{Float64}, QL::Matrix{Float64}, QR::Matrix{Float64}, 
-    N::Int64, ht::Float64, ε::Float64, V::Vector{Float64}, A::SparseMatrixCSC{Float64,Int64},
-    DL::SparseMatrixCSC{Float64,Int64}, DR::SparseMatrixCSC{Float64,Int64},
-    F1::Function, F2::Function, hs::Float64)
-    resFP, resHJB = 0, 0
-    @inbounds for ti in 2:N+1
-        lhs =  I - ht .* (ε .* A + 
-                (DR*spdiagm(0=>QL[:,ti])+DL*spdiagm(0=>QR[:,ti]))
-                )
-        rhs = M[:,ti-1]
-        resFP += sum(abs2.(lhs*M[:,ti]-rhs))
-    end
-    resFP = sqrt(hs*ht*resFP)
-
-    @inbounds for ti in N:-1:1  
-        lhs = I - ht .* (ε .* A -
-                (spdiagm(0=>QL[:,ti])*DL+spdiagm(0=>QR[:,ti])*DR)
-                )
-        rhs = U[:,ti+1] + ht .* (0.5 .* F1.(M[:,ti+1]) .*(QL[:,ti+1].^2 + QR[:,ti+1].^2) + V +  F2.(M[:,ti+1]))
-        resHJB += sum(abs2.(lhs*U[:,ti]-rhs))
-    end
-    resHJB = sqrt(hs*ht*resHJB)
-    return (resFP, resHJB)
+    return (;QL, QR)
 end
