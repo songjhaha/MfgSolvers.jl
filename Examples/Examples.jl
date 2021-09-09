@@ -117,3 +117,20 @@ function TwoDimTestAnother()
     re = solve_mfg(problem;node1=50,node2=50,N=100,verbose=true) # 120s, iter 65
     return re 
 end
+
+function TwoDimTest4_fixpoint()
+    xmin1, xmax1, xmin2, xmax2 = 0, 1, 0, 1
+    T = 0.5
+    ε = 0.7
+    m0(x1,x2) = exp(-10((x1-0.25)^2+(x2-0.25)^2))
+    uT(x1,x2) = cospi(2*x1) + cospi(2*x2)
+    V(x1,x2) = 0.1
+    F1(m) = m^0.5
+    F2(m) = 0
+    update_Q(Du,m) = Du / F1(m)
+    problem = MFGTwoDim(xmin1,xmax1,xmin2,xmax2,T,ε,m0,uT,V,F1,F2,update_Q) 
+    re_algo2 = solve_mfg_fixpoint(problem;method=:PI2,node1=50,node2=50,N=50,verbose=true) # iter 23
+    return re_algo2
+end
+
+re = TwoDimTest4_fixpoint()
