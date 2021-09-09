@@ -1,38 +1,5 @@
 using MfgSolvers
 
-
-function TwoDimTest4()
-    xmin1, xmax1, xmin2, xmax2 = 0, 1, 0, 1
-    T = 0.5
-    ε = 0.7
-    m0(x1,x2) = exp(-10((x1-0.25)^2+(x2-0.25)^2))
-    uT(x1,x2) = cospi(2*x1) + cospi(2*x2)
-    V(x1,x2) = 0.1
-    F1(m) = m^0.5
-    F2(m) = 0
-    update_Q(Du,m) = Du / F1(m)
-    problem = MFGTwoDim(xmin1,xmax1,xmin2,xmax2,T,ε,m0,uT,V,F1,F2,update_Q)
-    re = solve_mfg(problem;N=50) # 50s
-    return re
-end
-
-
-function TwoDimTest4_PI2()
-    xmin1, xmax1, xmin2, xmax2 = 0, 1, 0, 1
-    T = 0.5
-    ε = 0.7
-    m0(x1,x2) = exp(-10((x1-0.25)^2+(x2-0.25)^2))
-    uT(x1,x2) = cospi(2*x1) + cospi(2*x2)
-    V(x1,x2) = 0.1
-    F1(m) = m^0.5
-    F2(m) = 0
-    update_Q(Du,m) = Du / F1(m)
-    problem = MFGTwoDim(xmin1,xmax1,xmin2,xmax2,T,ε,m0,uT,V,F1,F2,update_Q) 
-    # re_algo1 = solve_mfg(problem;node1=50,node2=50,N=50,verbose=true) # iter 41
-    re_algo2 = solve_mfg(problem;method=:PI2,node1=50,node2=50,N=50,verbose=true) # iter 23
-    return re_algo2
-end
-
 function OneDimTest1()    
     xmin = 0.0    
     xmax = 1.0    
@@ -48,7 +15,6 @@ function OneDimTest1()
     re = solve_mfg(problem;node=200,N=200,verbose=true) # iter 10, Q diff 7e-9
     return re
 end
-
 
 function OneDimTest2()
     xmin = 0.0
@@ -85,8 +51,38 @@ function TwoDimTest3()
     F2(m) = m
     update_Q(Du,m) = Du / F1(m)
     problem = MFGTwoDim(xmin1,xmax1,xmin2,xmax2,T,ε,m0,uT,V,F1,F2,update_Q)
-    re = solve_mfg(problem;node1=50,node2=50,N=100,verbose=true)
+    re = solve_mfg(problem;node1=50,node2=50,N=100,verbose=true) # iter 58
     return re 
+end
+
+function TwoDimTest4()
+    xmin1, xmax1, xmin2, xmax2 = 0, 1, 0, 1
+    T = 0.5
+    ε = 0.7
+    m0(x1,x2) = exp(-10((x1-0.25)^2+(x2-0.25)^2))
+    uT(x1,x2) = cospi(2*x1) + cospi(2*x2)
+    V(x1,x2) = 0.1
+    F1(m) = m^0.5
+    F2(m) = 0
+    update_Q(Du,m) = Du / F1(m)
+    problem = MFGTwoDim(xmin1,xmax1,xmin2,xmax2,T,ε,m0,uT,V,F1,F2,update_Q)
+    re = solve_mfg(problem;N=50) # 50s # iter 41
+    return re
+end
+
+function TwoDimTest4_PI2()
+    xmin1, xmax1, xmin2, xmax2 = 0, 1, 0, 1
+    T = 0.5
+    ε = 0.7
+    m0(x1,x2) = exp(-10((x1-0.25)^2+(x2-0.25)^2))
+    uT(x1,x2) = cospi(2*x1) + cospi(2*x2)
+    V(x1,x2) = 0.1
+    F1(m) = m^0.5
+    F2(m) = 0
+    update_Q(Du,m) = Du / F1(m)
+    problem = MFGTwoDim(xmin1,xmax1,xmin2,xmax2,T,ε,m0,uT,V,F1,F2,update_Q) 
+    re_algo2 = solve_mfg(problem;method=:PI2,node1=50,node2=50,N=50,verbose=true) # iter 23
+    return re_algo2
 end
 
 function TwoDimTest5()
@@ -107,7 +103,7 @@ function TwoDimTest5()
     return re_mfg, re_mftc 
 end
 
- function TwoDimTestAnother()
+function TwoDimTestAnother()
     xmin1, xmax1, xmin2, xmax2 = 0, 1, 0, 1
     T = 1
     ε = 0.3
@@ -118,6 +114,6 @@ end
     F2(m) = m^2
     update_Q(Du,m) = Du
     problem = MFGTwoDim(xmin1,xmax1,xmin2,xmax2,T,ε,m0,uT,V,F1,F2,update_Q)
-    re = solve_mfg(problem;node1=50,node2=50,N=100,verbose=true)
+    re = solve_mfg(problem;node1=50,node2=50,N=100,verbose=true) # 120s, iter 65
     return re 
 end
