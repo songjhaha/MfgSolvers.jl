@@ -191,7 +191,7 @@ end
 
 function Initial_1d_Q(node::Int64, N::Int64)
     # initial guess control QL=QR=0
-    QL = zeros(node,N+1)  
-    QR = zeros(node,N+1)
+    QL = zeros(node,N)  
+    QR = zeros(node,N)
     return (;QL, QR)
 end

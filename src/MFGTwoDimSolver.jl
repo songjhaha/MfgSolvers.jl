@@ -195,9 +195,9 @@ end
 
 function Initial_2d_Q(node1::Int64, node2::Int64, N::Int64)
     # initial guess control QL=QR=0
-    QL1 = zeros(node1*node2,N+1)
-    QR1 = zeros(node1*node2,N+1)
-    QL2 = zeros(node1*node2,N+1)
-    QR2 = zeros(node1*node2,N+1)
+    QL1 = zeros(node1*node2,N)
+    QR1 = zeros(node1*node2,N)
+    QL2 = zeros(node1*node2,N)
+    QR2 = zeros(node1*node2,N)
     return (;QL1, QR1, QL2, QR2)
 end

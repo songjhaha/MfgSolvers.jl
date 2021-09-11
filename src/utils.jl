@@ -2,6 +2,8 @@ using LinearAlgebra, SparseArrays
 
 function L_Inf_norm(u::Array{Float64, 2})
     norm = maximum(abs.(u))
+    # norm = sum(abs2.(u))
+    # norm = sqrt(0.01*0.02^2 * norm)
     return norm
 end
 
@@ -114,8 +116,8 @@ function solve_FP_helper!(
     N::Int64, ht::Float64, ε::Float64, A::SparseMatrixCSC{Float64,Int64},
     D::NamedTuple{<:Any, NTuple{Dim, SparseMatrixCSC{T,Int64}}}) where {T<:Float64, Dim}
     # solve FP equation with control
-    @inbounds for ti in 2:N+1
-        lhs = I - ht .* (ε .* A - sum(map((q,d)->spdiagm(q[:,ti])*d, values(Q), values(D))))
+    for ti in 2:N+1
+        lhs = I - ht .* (ε .* A - sum(map((q,d)->spdiagm(q[:,ti-1])*d, values(Q), values(D))))
         M[:,ti] = lhs' \ M[:,ti-1]
     end
     return nothing
@@ -128,9 +130,9 @@ function solve_HJB_helper!(
     D::NamedTuple{<:Any, NTuple{Dim, SparseMatrixCSC{T,Int64}}},
     F1::Function, F2::Function) where {T<:Float64, Dim}
     # solve HJB equation with control and M
-    @inbounds for ti in N:-1:1  
+    for ti in N:-1:1  
         lhs = I - ht .* (ε .* A - sum(map((q,d)->spdiagm(q[:,ti])*d, values(Q), values(D))))
-        rhs = U[:,ti+1] + ht .*  (0.5 .*  F1.(M[:,ti+1]) .*sum(map(q->q[:,ti+1].^2, Q)) + V + F2.(M[:,ti+1]))
+        rhs = U[:,ti+1] + ht .*  (0.5 .*  F1.(M[:,ti+1]) .*sum(map(q->q[:,ti].^2, Q)) + V + F2.(M[:,ti+1]))
         U[:,ti] = lhs \ rhs
     end
     return nothing
@@ -138,31 +140,48 @@ end
 
 # Dimension 1
 function update_control!(
-    Q_new::NamedTuple{<:Any, NTuple{4, Matrix{T}}},
-    U::Matrix{T}, M::Matrix{T},
-    D::NamedTuple{<:Any, NTuple{4, SparseMatrixCSC{T,Int64}}},
-    update_Q::Function) where {T<:Float64}
-
-    # update control Q from U and M
-    Q_new.QL1 .= update_Q.(max.(D.DL1*U,0) , M)
-    Q_new.QR1 .= update_Q.(min.(D.DR1*U,0) , M)
-    Q_new.QL2 .= update_Q.(max.(D.DL2*U,0) , M)
-    Q_new.QR2 .= update_Q.(min.(D.DR2*U,0) , M)
-    return nothing
-end
-
-# Dimension 2
-function update_control!(
     Q_new::NamedTuple{<:Any, NTuple{2, Matrix{T}}},
     U::Matrix{T}, M::Matrix{T},
     D::NamedTuple{<:Any, NTuple{2, SparseMatrixCSC{T,Int64}}},
     update_Q::Function) where {T<:Float64}
 
     # update control Q from U and M
-    Q_new.QL .= update_Q.(max.(D.DL*U,0) , M)
-    Q_new.QR .= update_Q.(min.(D.DR*U,0) , M)
+    Q_new.QL .= update_Q.(max.(D.DL*U[:,1:end-1],0) , M[:,2:end])
+    Q_new.QR .= update_Q.(min.(D.DR*U[:,1:end-1],0) , M[:,2:end])
     return nothing
 end
+
+# Dimension 2
+function update_control!(
+    Q_new::NamedTuple{<:Any, NTuple{4, Matrix{T}}},
+    U::Matrix{T}, M::Matrix{T},
+    D::NamedTuple{<:Any, NTuple{4, SparseMatrixCSC{T,Int64}}},
+    update_Q::Function) where {T<:Float64}
+
+    # update control Q from U and M
+    Q_new.QL1 .= update_Q.(max.(D.DL1*U[:,1:end-1],0) , M[:,2:end])
+    Q_new.QR1 .= update_Q.(min.(D.DR1*U[:,1:end-1],0) , M[:,2:end])
+    Q_new.QL2 .= update_Q.(max.(D.DL2*U[:,1:end-1],0) , M[:,2:end])
+    Q_new.QR2 .= update_Q.(min.(D.DR2*U[:,1:end-1],0) , M[:,2:end])
+    return nothing
+end
+
+# update Q in time ti 
+function update_control!(
+    Q_new::NamedTuple{<:Any, NTuple{4, Matrix{T}}},
+    Uti::Vector{T}, M::Matrix{T},
+    D::NamedTuple{<:Any, NTuple{4, SparseMatrixCSC{T,Int64}}},
+    update_Q::Function, ti::Int64) where {T<:Float64}
+
+    # update control Q from U and M
+    Q_new.QL1[:,ti] = update_Q.(max.(D.DL1*Uti,0) , M[:,ti+1])
+    Q_new.QR1[:,ti] = update_Q.(min.(D.DR1*Uti,0) , M[:,ti+1])
+    Q_new.QL2[:,ti] = update_Q.(max.(D.DL2*Uti,0) , M[:,ti+1])
+    Q_new.QR2[:,ti] = update_Q.(min.(D.DR2*Uti,0) , M[:,ti+1])
+    return nothing
+end
+
+
 
 # Dimension 1
 function compute_res_helper(
@@ -174,7 +193,7 @@ function compute_res_helper(
 
     resFP, resHJB = 0, 0
     for ti in 2:N+1
-        lhs =  I/ht - (ε .* A - sum(map((q,d)->spdiagm(q[:,ti])*d, values(Q), values(D))))
+        lhs =  I/ht - (ε .* A - sum(map((q,d)->spdiagm(q[:,ti-1])*d, values(Q), values(D))))
         rhs = M[:,ti-1] ./ ht
         resFP += sum(abs2.(lhs' *M[:,ti]-rhs))
     end
@@ -182,7 +201,7 @@ function compute_res_helper(
 
     for ti in N:-1:1  
         lhs = I/ht - (ε .* A - sum(map((q,d)->spdiagm(q[:,ti])*d, values(Q), values(D))))
-        rhs = U[:,ti+1] ./ ht + (0.5 .*  (F1.(M[:,ti+1])) .*sum(map(q->q[:,ti+1].^2, Q)) + V + F2.(M[:,ti+1]))
+        rhs = U[:,ti+1] ./ ht + (0.5 .*  (F1.(M[:,ti+1])) .*sum(map(q->q[:,ti].^2, Q)) + V + F2.(M[:,ti+1]))
     
         resHJB += sum(abs2.(lhs*U[:,ti]-rhs))
     end
@@ -200,7 +219,7 @@ function compute_res_helper(
 
     resFP, resHJB = 0, 0
     for ti in 2:N+1
-        lhs =  I/ht -  (ε .* A - sum(map((q,d)->spdiagm(q[:,ti])*d, values(Q), values(D))))
+        lhs =  I/ht -  (ε .* A - sum(map((q,d)->spdiagm(q[:,ti-1])*d, values(Q), values(D))))
         rhs = M[:,ti-1] ./ ht
         resFP += sum(abs2.(lhs' *M[:,ti]-rhs))
     end
@@ -208,7 +227,7 @@ function compute_res_helper(
 
     for ti in N:-1:1  
         lhs = I/ht -  (ε .* A - sum(map((q,d)->spdiagm(q[:,ti])*d, values(Q), values(D))))
-        rhs = U[:,ti+1] ./ht + (0.5 .*  (F1.(M[:,ti+1])) .*sum(map(q->q[:,ti+1].^2, Q)) + V + F2.(M[:,ti+1]))
+        rhs = U[:,ti+1] ./ht + (0.5 .*  (F1.(M[:,ti+1])) .*sum(map(q->q[:,ti].^2, Q)) + V + F2.(M[:,ti+1]))
     
         resHJB += sum(abs2.(lhs*U[:,ti]-rhs))
     end
