@@ -36,8 +36,8 @@ function solve_mfg_fixpoint_2d(Problem::MFGTwoDim, ::Val{:FixPoint2}, node1::Int
         solve_FP_helper!(M, Q, N, ht, ε, A, D)
     end
 
-    function solve_HJB_fixpoint!(U_new, U_old, M, Q; N=N, ht=ht, ε=ε, V=V, A=A, D=D, F1=F1, F2=F2, update_Q=update_Q)
-        solve_HJB_fixpoint_helper!(U_new, U_old, M, Q, N, ht, ε, V, A, D, F1, F2, update_Q)
+    function solve_HJB_fixpoint!(U_new, U_old, M, Q; N=N, ht=ht, ε=ε, V=V, A=A, D=D, F1=F1, F2=F2, update_Q=update_Q, hs1=hs1, hs2=hs2)
+        solve_HJB_fixpoint_helper!(U_new, U_old, M, Q, N, ht, ε, V, A, D, F1, F2, update_Q, hs1, hs2)
     end
 
     function compute_res(U, M, Q; N=N, ht=ht, ε=ε, V=V, A=A, D=D, F1=F1, F2=F2, hs1=hs1, hs2=hs2)
@@ -94,7 +94,7 @@ function solve_HJB_fixpoint_helper!(
     Q::NamedTuple{<:Any, NTuple{4, Matrix{T}}}, 
     N::Int64, ht::T, ε::T, V::Vector{T}, A::SparseMatrixCSC{T,Int64},
     D::NamedTuple{<:Any, NTuple{4, SparseMatrixCSC{T,Int64}}},
-    F1::Function, F2::Function, update_Q::Function) where {T<:Float64, Dim}
+    F1::Function, F2::Function, update_Q::Function,hs1::T,hs2::T) where {T<:Float64, Dim}
     """
 
     Q = DU_old / F1(M) 
@@ -106,8 +106,10 @@ function solve_HJB_fixpoint_helper!(
     # update U with U_old and M
     for ti in N:-1:1
         U_temp = copy(U_old[:,ti])
-        
-        for inner_it in 1:30
+        # U_temp = copy(U_new[:,ti+1])
+        update_control!(Q, U_temp, M, D, update_Q, ti)
+
+        for inner_it in 1:50
             jacon = 1/ht*I -  ε .* A + 2 .*
                 (spdiagm(Q.QL1[:,ti])*D.DL1 + spdiagm(Q.QR1[:,ti])*D.DR1 +
                 spdiagm(Q.QL2[:,ti])*D.DL2 + spdiagm(Q.QR2[:,ti])*D.DR2)
@@ -116,14 +118,15 @@ function solve_HJB_fixpoint_helper!(
                     0.5 .* F1.(M[:,ti+1]) .* (Q.QL1[:,ti].^2 + Q.QR1[:,ti].^2 + Q.QL2[:,ti].^2 + Q.QR2[:,ti].^2) -
                     V - F2.(M[:,ti+1])
             
-            if norm(res) < 1e-8
-                println("norm_HJB_res: $(norm(res))") 
+            if sqrt(hs1*hs2)*norm(res) < 1e-8
+                # println("norm_HJB_res: $(norm(res)), ti: $ti, inner_it: $inner_it") 
                 U_new[:,ti] = U_temp
                 # println("solve inner HJB") 
                 break
-            elseif inner_it==30
+            elseif inner_it==50
                 println("inner HJB solver not converge")
             else
+                # println("update U_temp with Newton method")
                 U_temp = jacon \ (-res) + U_temp
                 update_control!(Q, U_temp, M, D, update_Q, ti)
             end
@@ -261,30 +264,30 @@ function solve_HJB_PI_helper!(
 end
 
 
-function Initial_2d_state(
-    sgrid1::Vector{Float64}, sgrid2::Vector{Float64},
-    hs1::Float64, hs2::Float64,
-    node1::Int64, node2::Int64, N::Int64, 
-    m0::Function, uT::Function, cal_V::Function)
-    M = ones(node1*node2,N+1)
-    U = zeros(node1*node2,N+1)
-    M0 = m0.(sgrid1,sgrid2')
-    C = hs1 * hs2 * sum(M0)
-    M0 = M0 ./C
-    M[:,1] = reshape(M0, (node1*node2))
-    U[:,end] = reshape(uT.(sgrid1,sgrid2'), (node1*node2))
-    V = float(cal_V.(sgrid1,sgrid2'))
-    V = reshape(V, (node1*node2))
-    M_old = copy(M)
-    U_old = copy(U)
-    return (M, U, V, M_old, U_old)
-end
+# function Initial_2d_state(
+#     sgrid1::Vector{Float64}, sgrid2::Vector{Float64},
+#     hs1::Float64, hs2::Float64,
+#     node1::Int64, node2::Int64, N::Int64, 
+#     m0::Function, uT::Function, cal_V::Function)
+#     M = ones(node1*node2,N+1)
+#     U = zeros(node1*node2,N+1)
+#     M0 = m0.(sgrid1,sgrid2')
+#     C = hs1 * hs2 * sum(M0)
+#     M0 = M0 ./C
+#     M[:,1] = reshape(M0, (node1*node2))
+#     U[:,end] = reshape(uT.(sgrid1,sgrid2'), (node1*node2))
+#     V = float(cal_V.(sgrid1,sgrid2'))
+#     V = reshape(V, (node1*node2))
+#     M_old = copy(M)
+#     U_old = copy(U)
+#     return (M, U, V, M_old, U_old)
+# end
 
-function Initial_2d_Q(node1::Int64, node2::Int64, N::Int64)
-    # initial guess control QL=QR=0
-    QL1 = zeros(node1*node2,N)
-    QR1 = zeros(node1*node2,N)
-    QL2 = zeros(node1*node2,N)
-    QR2 = zeros(node1*node2,N)
-    return (;QL1, QR1, QL2, QR2)
-end
+# function Initial_2d_Q(node1::Int64, node2::Int64, N::Int64)
+#     # initial guess control QL=QR=0
+#     QL1 = zeros(node1*node2,N)
+#     QR1 = zeros(node1*node2,N)
+#     QL2 = zeros(node1*node2,N)
+#     QR2 = zeros(node1*node2,N)
+#     return (;QL1, QR1, QL2, QR2)
+# end

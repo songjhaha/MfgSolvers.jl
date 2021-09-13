@@ -61,12 +61,12 @@ function solve_mfg_2d(Problem::MFGTwoDim, ::Val{:PI1}, node1::Int64, node2::Int6
         append!(residual_FP, resFP)
         append!(residual_HJB, resHJB)
 
-        verbose && println("iteraton $(iter), ||Q_{k+1} - Q_{k}|| = $(L_dist_Q)")
+        verbose && println("iteraton $(iter), ||M_{k+1} - M_{k}|| = $(L_dist_M)")
 
         M_old = copy(M)
         U_old = copy(U)
 
-        if L_dist_Q < 1e-8
+        if L_dist_M < 1e-8
             converge = true
             verbose && println("converge!Iteration $iter")
 
@@ -149,12 +149,12 @@ function solve_mfg_2d(Problem::MFGTwoDim, ::Val{:PI2}, node1::Int64, node2::Int6
         append!(residual_FP, resFP)
         append!(residual_HJB, resHJB)
 
-        verbose && println("iteraton $(iter), ||Q_{k+1} - Q_{k}|| = $(L_dist_Q)")
+        verbose && println("iteraton $(iter), ||M_{k+1} - M_{k}|| = $(L_dist_M)")
 
         M_old = copy(M)
         U_old = copy(U)
 
-        if L_dist_Q < 1e-8
+        if L_dist_M < 1e-8
             converge = true
             verbose && println("converge!Iteration $iter")
 
