@@ -161,7 +161,8 @@ function compute_res_fixpoint(
     return (resFP, resHJB)
 end
 
-function solve_mfg_fixpoint_2d(Problem::MFGTwoDim, ::Val{:PI2}, node1::Int64, node2::Int64, N::Int64, maxit::Int64, verbose::Bool)
+# another fixpoint algorithm, working on
+function solve_mfg_fixpoint_2d(Problem::MFGTwoDim, ::Val{:FixPoint4}, node1::Int64, node2::Int64, N::Int64, maxit::Int64, verbose::Bool)
     xmin1, xmax1, xmin2, xmax2, T, ε, m0, uT, cal_V, F1, F2, update_Q = Problem.xmin1, Problem.xmax1, Problem.xmin2, Problem.xmax2, Problem.T, Problem.ε, Problem.m0, Problem.uT, Problem.V, Problem.F1, Problem.F2, Problem.update_Q
     println("start solving with Policy Iteration")
     begin    
@@ -196,7 +197,7 @@ function solve_mfg_fixpoint_2d(Problem::MFGTwoDim, ::Val{:PI2}, node1::Int64, no
     end
 
     function solve_HJB_PI!(U_new, M, Q; N=N, ht=ht, ε=ε, V=V, A=A, D=D, F1=F1, F2=F2)
-        solve_HJB_PI_helper!(U_new, M, Q, N, ht, ε, V, A, D, F1, F2)
+        solve_HJB_PI_fixpoint4_helper!(U_new, M, Q, N, ht, ε, V, A, D, F1, F2)
     end
 
     function compute_res(U, M, Q; N=N, ht=ht, ε=ε, V=V, A=A, D=D, F1=F1, F2=F2, hs1=hs1, hs2=hs2)
@@ -248,7 +249,7 @@ function solve_mfg_fixpoint_2d(Problem::MFGTwoDim, ::Val{:PI2}, node1::Int64, no
     return result
 end
 
-function solve_HJB_PI_helper!(
+function solve_HJB_PI_fixpoint4_helper!(
     U::Matrix{T}, M::Matrix{T}, 
     Q::NamedTuple{<:Any, NTuple{Dim, Matrix{T}}}, 
     N::Int64, ht::T, ε::T, V::Vector{T}, A::SparseMatrixCSC{T,Int64},
@@ -256,38 +257,11 @@ function solve_HJB_PI_helper!(
     F1::Function, F2::Function) where {T<:Float64, Dim}
     # solve HJB equation with control and M
     for ti in N:-1:1  
-        lhs = I - ht .* (ε .* A - sum(map((q,d)->spdiagm(q[:,ti])*d, values(Q), values(D))))
-        rhs = U[:,ti+1] + ht .*  (0.5 .*  F1.(M[:,ti+1]) .*sum(map(q->q[:,ti].^2, Q)) + V + F2.(M[:,ti+1]))
+        lhs = I - ht .* ε .* A 
+        rhs = U[:,ti+1] - ht .*  (0.5 .*  F1.(M[:,ti+1]) .*sum(map(q->q[:,ti].^2, Q)) + V + F2.(M[:,ti+1]))
         U[:,ti] = lhs \ rhs
     end
     return nothing
 end
 
 
-# function Initial_2d_state(
-#     sgrid1::Vector{Float64}, sgrid2::Vector{Float64},
-#     hs1::Float64, hs2::Float64,
-#     node1::Int64, node2::Int64, N::Int64, 
-#     m0::Function, uT::Function, cal_V::Function)
-#     M = ones(node1*node2,N+1)
-#     U = zeros(node1*node2,N+1)
-#     M0 = m0.(sgrid1,sgrid2')
-#     C = hs1 * hs2 * sum(M0)
-#     M0 = M0 ./C
-#     M[:,1] = reshape(M0, (node1*node2))
-#     U[:,end] = reshape(uT.(sgrid1,sgrid2'), (node1*node2))
-#     V = float(cal_V.(sgrid1,sgrid2'))
-#     V = reshape(V, (node1*node2))
-#     M_old = copy(M)
-#     U_old = copy(U)
-#     return (M, U, V, M_old, U_old)
-# end
-
-# function Initial_2d_Q(node1::Int64, node2::Int64, N::Int64)
-#     # initial guess control QL=QR=0
-#     QL1 = zeros(node1*node2,N)
-#     QR1 = zeros(node1*node2,N)
-#     QL2 = zeros(node1*node2,N)
-#     QR2 = zeros(node1*node2,N)
-#     return (;QL1, QR1, QL2, QR2)
-# end

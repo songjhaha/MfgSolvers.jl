@@ -183,4 +183,3 @@ contour(re2.sgrid2,re2.sgrid1,re2.M[:,:,end],levels=0:0.2:3,c=:rainbow,title="M,
 
 
 
-TwoDimTest4_fixpoint(50)

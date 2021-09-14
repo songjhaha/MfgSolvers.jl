@@ -2,19 +2,19 @@ using MfgSolvers
 using LaTeXStrings
 using Plots
 
-function OneDimTest1()    
+function OneDimTest1(method::Symbol)    
     xmin = 0.0    
     xmax = 1.0    
     T = 1    
     ε = 0.05    
     m0(x) = ((x>=0.375) && (x<=0.625)) ? 4 : 0
-    uT(x) = 100min( (x-0.3)^2, (x-0.7)^2 )
+    uT(x) = 10min( (x-0.3)^2, (x-0.7)^2 )
     V(x) = 0.1
-    F1(m) = 20(1+4m)^1.5
+    F1(m) = (1+4m)^1.5
     F2(m) = m
     update_Q(Du,m) = Du / F1(m)
     problem = MFGOneDim(xmin,xmax,T,ε,m0,uT,V,F1,F2,update_Q)
-    re = solve_mfg(problem;node=200,N=200,verbose=true) # iter 10, Q diff 7e-9
+    re = solve_mfg(problem;method=method,node=200,N=200,verbose=true) # iter 10, Q diff 7e-9
     return re
 end
 
@@ -29,7 +29,7 @@ function TwoDimTest4_PI1(Nh::Int64)
     F2(m) = 0
     update_Q(Du,m) = Du / F1(m)
     problem = MFGTwoDim(xmin1,xmax1,xmin2,xmax2,T,ε,m0,uT,V,F1,F2,update_Q)
-    re = solve_mfg(problem;node1=Nh,node2=Nh,N=50) # 50s # iter 41
+    re = solve_mfg(problem;node1=Nh,node2=Nh,N=50) 
     return re
 end
 
@@ -45,7 +45,7 @@ function TwoDimTest4_PI2(Nh::Int64)
     update_Q(Du,m) = Du / F1(m)
     # Nh=100
     problem = MFGTwoDim(xmin1,xmax1,xmin2,xmax2,T,ε,m0,uT,V,F1,F2,update_Q) 
-    re_algo2 = solve_mfg_fixpoint(problem;method=:PI2,node1=Nh,node2=Nh,N=50,verbose=true)
+    re_algo2 = solve_mfg(problem;method=:PI2,node1=Nh,node2=Nh,N=50,verbose=true)
     return re_algo2
 end
 
@@ -67,7 +67,7 @@ end
 
 # case1
 begin
-    re_OneDim = OneDimTest1()
+    re_OneDim = OneDimTest1(:PI1)
     plot(re_OneDim.history.hist_q, yaxis=:log, label=L"\Vert q^{(k+1)}-q^{(k)} \Vert")
     plot!(re_OneDim.history.hist_m, yaxis=:log, label=L"\Vert m^{(k+1)}-m^{(k)} \Vert")
     plot!(re_OneDim.history.hist_u, yaxis=:log, label=L"\Vert u^{(k+1)}-u^{(k)} \Vert")
@@ -88,12 +88,33 @@ begin
         end
         savefig("Q_case1.pdf")
     end
-end
+    plot(re_OneDim.history.residual_HJB, yaxis=:log, label="HJB")
+    plot!(re_OneDim.history.residual_FP, yaxis=:log, label="FP")
+    savefig("case1_residual.pdf")
 
+    re_OneDim_PI2 = OneDimTest1(:PI2)
+    begin
+        m_pic = plot(re_OneDim_PI2.sgrid, re_OneDim_PI2.M[:,1], label="t=0")
+        for ti in [41,81,121,161,201]
+            plot!(m_pic, re_OneDim_PI2.sgrid, re_OneDim_PI2.M[:,ti], label="t=$((ti-1)/200)")
+        end
+        savefig("M_case1_PI2.pdf")
+    end
+
+    begin
+        q_pic = plot(re_OneDim_PI2.sgrid, (re_OneDim_PI2.Q.QL+re_OneDim_PI2.Q.QR)[:,1], label="t=0",legend=:bottomright)
+        for ti in [40,80,120,160,200]
+            plot!(q_pic,re_OneDim_PI2.sgrid, (re_OneDim_PI2.Q.QL+re_OneDim_PI2.Q.QR)[:,ti], label="t=$(ti/200)",legend=:bottomright)
+        end
+        savefig("Q_case1_PI2.pdf")
+    end
+end
 
 re_PI1 = TwoDimTest4_PI1(50)
 re_PI2_Nh50 = TwoDimTest4_PI2(50)
+re_fixpoint2_Nh50 = TwoDimTest4_fixpoint(50)
 
+# Mass policy iteration
 contour(re_PI2_Nh50.sgrid2,re_PI2_Nh50.sgrid1,re_PI2_Nh50.M[:,:,1],c=:rainbow,title="M,t=0",size=(450,400))
 savefig("M_case2_t0.pdf")
 contour(re_PI2_Nh50.sgrid2,re_PI2_Nh50.sgrid1,re_PI2_Nh50.M[:,:,17],c=:rainbow,title="M,t=0.16",size=(450,400))
@@ -103,15 +124,47 @@ savefig("M_case2_t033.pdf")
 contour(re_PI2_Nh50.sgrid2,re_PI2_Nh50.sgrid1,re_PI2_Nh50.M[:,:,end],levels=0:0.5:4.5,c=:rainbow,title="M,t=0.5",size=(450,400))
 savefig("M_case2_t05.pdf")
 
-re_fixpoint2_Nh50 = TwoDimTest4_fixpoint(50)
-
+# Mass fixpoint
 contour(re_fixpoint2_Nh50.sgrid2,re_fixpoint2_Nh50.sgrid1,re_fixpoint2_Nh50.M[:,:,1],c=:rainbow,title="M,t=0",size=(450,400))
-# savefig("M_case2_t0.pdf")
+savefig("M_case2_fixpoint_t0.pdf")
 contour(re_fixpoint2_Nh50.sgrid2,re_fixpoint2_Nh50.sgrid1,re_fixpoint2_Nh50.M[:,:,17],c=:rainbow,title="M,t=0.16",size=(450,400))
-# savefig("M_case2_t016.pdf")
+savefig("M_case2_fixpoint_t016.pdf")
 contour(re_fixpoint2_Nh50.sgrid2,re_fixpoint2_Nh50.sgrid1,re_fixpoint2_Nh50.M[:,:,34],c=:rainbow,title="M,t=0.33",size=(450,400))
-# savefig("M_case2_t033.pdf")
+savefig("M_case2_fixpoint_t033.pdf")
 contour(re_fixpoint2_Nh50.sgrid2,re_fixpoint2_Nh50.sgrid1,re_fixpoint2_Nh50.M[:,:,end],levels=0:0.5:4.5,c=:rainbow,title="M,t=0.5",size=(450,400))
-# savefig("M_case2_t05.pdf")
+savefig("M_case2_fixpoint_t05.pdf")
+
+# residual fixPoint & PI2
+plot(re_fixpoint2_Nh50.history.residual_HJB, yaxis=:log, label="Fixed Point Iteration")
+plot!(re_PI2_Nh50.history.residual_HJB, yaxis=:log, label="Policy Iteration")
+savefig("residual_HJB_Nh50.pdf")
+
+plot(re_fixpoint2_Nh50.history.residual_FP, yaxis=:log, label="Fixed Point Iteration")
+plot!(re_PI2_Nh50.history.residual_FP, yaxis=:log, label="Policy Iteration")
+savefig("residual_FP_Nh50.pdf")
+
+
+# PI1 & PI2
+plot(re_PI1.history.residual_HJB, yaxis=:log, label="PI1-HJB")
+plot!(re_PI2_Nh50.history.residual_HJB, yaxis=:log, label="PI2-HJB")
+# savefig("residual_HJB_PI1&2.pdf")
+
+plot!(re_PI1.history.residual_FP, yaxis=:log, label="PI1-FP")
+plot!(re_PI2_Nh50.history.residual_FP, yaxis=:log, label="PI2-FP")
+savefig("residual_PI1&2.pdf")
+
+# converge case2 PI1&PI2
+plot(re_PI1.history.hist_q, yaxis=:log, label="PI1")
+plot!(re_PI2_Nh50.history.hist_q, yaxis=:log, label="PI2")
+savefig("converge_case2_q.pdf")
+plot(re_PI1.history.hist_m, yaxis=:log, label="PI1")
+plot!(re_PI2_Nh50.history.hist_m, yaxis=:log, label="PI2")
+savefig("converge_case2_m.pdf")
+plot(re_PI1.history.hist_u, yaxis=:log, label="PI1")
+plot!(re_PI2_Nh50.history.hist_u, yaxis=:log, label="PI2")
+savefig("converge_case2_u.pdf")
+
+
+
 
 
