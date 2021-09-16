@@ -86,6 +86,9 @@ struct MFGOneDim_result<:MFGResult
     tgrid::Vector{Float64}
     iter::Int
     history::Solver_history
+    M_List::Vector{Array{Float64, 2}}
+    U_List::Vector{Array{Float64, 2}}
+    Q_List::Vector{NamedTuple{(:QL,:QR), NTuple{2, Matrix{Float64}}}}
 end
 
 struct MFGTwoDim_result<:MFGResult
@@ -98,6 +101,9 @@ struct MFGTwoDim_result<:MFGResult
     tgrid::Vector{Float64}
     iter::Int
     history::Solver_history
+    M_List::Vector{Array{Float64, 2}}
+    U_List::Vector{Array{Float64, 2}}
+    Q_List::Vector{NamedTuple{(:QL1,:QR1, :QL2, :QR2), NTuple{4, Matrix{Float64}}}}
 end
 
 function Base.show(io::IO, x::MFGResult)

@@ -28,6 +28,12 @@ function solve_mfg_2d(Problem::MFGTwoDim, ::Val{:PI1}, node1::Int64, node2::Int6
         Q_new = map(copy, Q)
         # Linear operators with periodic boundary
         A,D = build_Linear_operator_TwoDim(node1,node2,hs1,hs2)
+        M_List = typeof(M)[]
+        U_List = typeof(U)[]
+        Q_List = typeof(Q)[]
+        append!(M_List, [copy(M)])
+        append!(U_List, [copy(U)])
+        append!(Q_List, [deepcopy(Q)])
     end
 
     function solve_FP!(M, Q; N=N, ht=ht, ε=ε, A=A, D=D)
@@ -66,6 +72,10 @@ function solve_mfg_2d(Problem::MFGTwoDim, ::Val{:PI1}, node1::Int64, node2::Int6
         M_old = copy(M)
         U_old = copy(U)
 
+        append!(M_List, [copy(M)])
+        append!(U_List, [copy(U)])
+        append!(Q_List, [deepcopy(Q)])
+
         if L_dist_M < 1e-8
             converge = true
             verbose && println("converge!Iteration $iter")
@@ -82,7 +92,7 @@ function solve_mfg_2d(Problem::MFGTwoDim, ::Val{:PI1}, node1::Int64, node2::Int6
     history = Solver_history(hist_q,hist_m,hist_u,residual_FP,residual_HJB)
     M = reshape(M,node1,node2,N+1)
     U = reshape(U,node1,node2,N+1)
-    result = MFGTwoDim_result(converge,M,U,Q,sgrid1,sgrid2,tgrid,length(hist_q),history)
+    result = MFGTwoDim_result(converge,M,U,Q,sgrid1,sgrid2,tgrid,length(hist_q),history,M_List,U_List,Q_List)
     return result
 end
 
@@ -113,6 +123,12 @@ function solve_mfg_2d(Problem::MFGTwoDim, ::Val{:PI2}, node1::Int64, node2::Int6
         Q_tilde = map(copy, Q)
         # Linear operators with periodic boundary
         A,D = build_Linear_operator_TwoDim(node1,node2,hs1,hs2)
+        M_List = typeof(M)[]
+        U_List = typeof(U)[]
+        Q_List = typeof(Q)[]
+        append!(M_List, [copy(M)])
+        append!(U_List, [copy(U)])
+        append!(Q_List, [deepcopy(Q)])
     end
 
 
@@ -154,6 +170,10 @@ function solve_mfg_2d(Problem::MFGTwoDim, ::Val{:PI2}, node1::Int64, node2::Int6
         M_old = copy(M)
         U_old = copy(U)
 
+        append!(M_List, [copy(M)])
+        append!(U_List, [copy(U)])
+        append!(Q_List, [deepcopy(Q)])
+
         if L_dist_M < 1e-8
             converge = true
             verbose && println("converge!Iteration $iter")
@@ -169,7 +189,7 @@ function solve_mfg_2d(Problem::MFGTwoDim, ::Val{:PI2}, node1::Int64, node2::Int6
     history = Solver_history(hist_q,hist_m,hist_u,residual_FP,residual_HJB)
     M = reshape(M,node1,node2,N+1)
     U = reshape(U,node1,node2,N+1)
-    result = MFGTwoDim_result(converge,M,U,Q,sgrid1,sgrid2,tgrid,length(hist_q),history)
+    result = MFGTwoDim_result(converge,M,U,Q,sgrid1,sgrid2,tgrid,length(hist_q),history,M_List,U_List,Q_List)
     return result
 end
 
