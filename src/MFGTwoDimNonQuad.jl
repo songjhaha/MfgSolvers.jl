@@ -1,8 +1,8 @@
 using LinearAlgebra, SparseArrays
 
-solve_mfg(Problem::MFGTwoDim; method=:PI1, node1=50, node2=50, N=100, maxit=80, verbose=true) = solve_mfg_2d(Problem, Val(method),  node1, node2, N, maxit, verbose)
+solve_mfg_non_quad(Problem::MFGTwoDim; method=:PI1, node1=50, node2=50, N=100, maxit=80, verbose=true) = solve_mfg_2d_non_quad(Problem, Val(method),  node1, node2, N, maxit, verbose)
 
-function solve_mfg_2d(Problem::MFGTwoDim, ::Val{:PI1}, node1::Int64, node2::Int64, N::Int64, maxit::Int64, verbose::Bool)
+function solve_mfg_2d_non_quad(Problem::MFGTwoDim, ::Val{:PI1}, node1::Int64, node2::Int64, N::Int64, maxit::Int64, verbose::Bool)
     xmin1, xmax1, xmin2, xmax2, T, ε, m0, uT, cal_V, F1, F2, update_Q = Problem.xmin1, Problem.xmax1, Problem.xmin2, Problem.xmax2, Problem.T, Problem.ε, Problem.m0, Problem.uT, Problem.V, Problem.F1, Problem.F2, Problem.update_Q
     begin    
         hs1 = (xmax1-xmin1)/node1
@@ -41,18 +41,18 @@ function solve_mfg_2d(Problem::MFGTwoDim, ::Val{:PI1}, node1::Int64, node2::Int6
     end
 
     function solve_HJB!(U, M, Q; N=N, ht=ht, ε=ε, V=V, A=A, D=D, F1=F1, F2=F2)
-        solve_HJB_helper!(U, M, Q, N, ht, ε, V, A, D, F1, F2)
+        solve_HJB_helper_non_quad!(U, M, Q, N, ht, ε, V, A, D, F1, F2)
     end
 
     function compute_res(U, M, Q; N=N, ht=ht, ε=ε, V=V, A=A, D=D, F1=F1, F2=F2, hs1=hs1, hs2=hs2)
-        compute_res_helper(U, M, Q, N, ht, ε, V, A, D, F1, F2, hs1, hs2)
+        compute_res_helper_non_quad(U, M, Q, N, ht, ε, V, A, D, F1, F2, hs1, hs2)
     end
 
     # println("start Policy Iteration")
     for iter in 1:maxit
         solve_FP!(M, Q)
         solve_HJB!(U, M, Q)
-        update_control!(Q_new, U, M, D, update_Q)
+        update_control_non_quad!(Q_new, U, M, D, update_Q)
     
         resFP, resHJB = compute_res(U, M, Q_new)
         Q, Q_new = Q_new, Q
@@ -67,7 +67,7 @@ function solve_mfg_2d(Problem::MFGTwoDim, ::Val{:PI1}, node1::Int64, node2::Int6
         append!(residual_FP, resFP)
         append!(residual_HJB, resHJB)
 
-        verbose && println("iteraton $(iter), ||M_{k+1} - M_{k}|| = $(L_dist_M)")
+        verbose && println("iteraton $(iter), ||Q_{k+1} - Q_{k}|| = $(L_dist_Q)")
 
         M_old = copy(M)
         U_old = copy(U)
@@ -76,7 +76,7 @@ function solve_mfg_2d(Problem::MFGTwoDim, ::Val{:PI1}, node1::Int64, node2::Int6
         append!(U_List, [copy(U)])
         append!(Q_List, [deepcopy(Q)])
 
-        if L_dist_M < 1e-8
+        if L_dist_Q < 1e-8
             converge = true
             verbose && println("converge!Iteration $iter")
 
@@ -96,7 +96,7 @@ function solve_mfg_2d(Problem::MFGTwoDim, ::Val{:PI1}, node1::Int64, node2::Int6
     return result
 end
 
-function solve_mfg_2d(Problem::MFGTwoDim, ::Val{:PI2}, node1::Int64, node2::Int64, N::Int64, maxit::Int64, verbose::Bool)
+function solve_mfg_2d_non_quad(Problem::MFGTwoDim, ::Val{:PI2}, node1::Int64, node2::Int64, N::Int64, maxit::Int64, verbose::Bool)
     xmin1, xmax1, xmin2, xmax2, T, ε, m0, uT, cal_V, F1, F2, update_Q = Problem.xmin1, Problem.xmax1, Problem.xmin2, Problem.xmax2, Problem.T, Problem.ε, Problem.m0, Problem.uT, Problem.V, Problem.F1, Problem.F2, Problem.update_Q
     begin    
         hs1 = (xmax1-xmin1)/node1
@@ -137,20 +137,20 @@ function solve_mfg_2d(Problem::MFGTwoDim, ::Val{:PI2}, node1::Int64, node2::Int6
     end
 
     function solve_HJB!(U, M, Q; N=N, ht=ht, ε=ε, V=V, A=A, D=D, F1=F1, F2=F2)
-        solve_HJB_helper!(U, M, Q, N, ht, ε, V, A, D, F1, F2)
+        solve_HJB_helper_non_quad!(U, M, Q, N, ht, ε, V, A, D, F1, F2)
     end
 
     function compute_res(U, M, Q; N=N, ht=ht, ε=ε, V=V, A=A, D=D, F1=F1, F2=F2, hs1=hs1, hs2=hs2)
-        compute_res_helper(U, M, Q, N, ht, ε, V, A, D, F1, F2, hs1, hs2)
+        compute_res_helper_non_quad(U, M, Q, N, ht, ε, V, A, D, F1, F2, hs1, hs2)
     end
 
 
     # println("start Policy Iteration")
     for iter in 1:maxit
         solve_FP!(M, Q)
-        update_control!(Q_tilde, U, M, D, update_Q)
+        update_control_non_quad!(Q_tilde, U, M, D, update_Q)
         solve_HJB!(U, M, Q_tilde)
-        update_control!(Q_new, U, M, D, update_Q)
+        update_control_non_quad!(Q_new, U, M, D, update_Q)
 
         resFP, resHJB = compute_res(U, M, Q_new)
         Q, Q_new = Q_new, Q
@@ -165,7 +165,7 @@ function solve_mfg_2d(Problem::MFGTwoDim, ::Val{:PI2}, node1::Int64, node2::Int6
         append!(residual_FP, resFP)
         append!(residual_HJB, resHJB)
 
-        verbose && println("iteraton $(iter), ||M_{k+1} - M_{k}|| = $(L_dist_M)")
+        verbose && println("iteraton $(iter), ||Q_{k+1} - Q_{k}|| = $(L_dist_Q)")
 
         M_old = copy(M)
         U_old = copy(U)
@@ -174,7 +174,7 @@ function solve_mfg_2d(Problem::MFGTwoDim, ::Val{:PI2}, node1::Int64, node2::Int6
         append!(U_List, [copy(U)])
         append!(Q_List, [deepcopy(Q)])
 
-        if L_dist_M < 1e-8
+        if L_dist_Q < 1e-8
             converge = true
             verbose && println("converge!Iteration $iter")
 
@@ -194,30 +194,68 @@ function solve_mfg_2d(Problem::MFGTwoDim, ::Val{:PI2}, node1::Int64, node2::Int6
 end
 
 
-function Initial_2d_state(
-    sgrid1::Vector{Float64}, sgrid2::Vector{Float64},
-    hs1::Float64, hs2::Float64,
-    node1::Int64, node2::Int64, N::Int64, 
-    m0::Function, uT::Function, cal_V::Function)
-    M = ones(node1*node2,N+1)
-    U = zeros(node1*node2,N+1)
-    M0 = m0.(sgrid1,sgrid2')
-    C = hs1 * hs2 * sum(M0)
-    M0 = M0 ./C
-    M[:,1] = reshape(M0, (node1*node2))
-    U[:,end] = reshape(uT.(sgrid1,sgrid2'), (node1*node2))
-    V = float(cal_V.(sgrid1,sgrid2'))
-    V = reshape(V, (node1*node2))
-    M_old = copy(M)
-    U_old = copy(U)
-    return (M, U, V, M_old, U_old)
+
+function update_control_non_quad!(
+    Q_new::NamedTuple{<:Any, NTuple{4, Matrix{T}}},
+    U::Matrix{T}, M::Matrix{T},
+    D::NamedTuple{<:Any, NTuple{4, SparseMatrixCSC{T,Int64}}},
+    update_Q::Function) where {T<:Float64}
+    println("use non quad update q")
+    size_Q_s, size_Q_t = size(Q_new.QL1)
+    # update control Q from U and M
+    for ti in 1:size_Q_t
+        DLu1 = max.(D.DL1*U[:,ti],0)
+        DRu1 = min.(D.DR1*U[:,ti],0)
+        DLu2 = max.(D.DL2*U[:,ti],0)
+        DRu2 = min.(D.DR2*U[:,ti],0)
+        Du_norm = sqrt.(abs2.(DLu1)+abs2.(DRu1)+abs2.(DLu2)+abs2.(DRu2))
+            
+        Q_new.QL1[:,ti] = DLu1 .* Du_norm ./ M[:,ti+1].^0.5 
+        Q_new.QR1[:,ti] = DRu1 .* Du_norm ./ M[:,ti+1].^0.5
+        Q_new.QL2[:,ti] = DLu2 .* Du_norm ./ M[:,ti+1].^0.5
+        Q_new.QR2[:,ti] = DRu2 .* Du_norm ./ M[:,ti+1].^0.5
+    end
+    return nothing
 end
 
-function Initial_2d_Q(node1::Int64, node2::Int64, N::Int64)
-    # initial guess control QL=QR=0
-    QL1 = zeros(node1*node2,N)
-    QR1 = zeros(node1*node2,N)
-    QL2 = zeros(node1*node2,N)
-    QR2 = zeros(node1*node2,N)
-    return (;QL1, QR1, QL2, QR2)
+function solve_HJB_helper_non_quad!(
+    U::Matrix{T}, M::Matrix{T}, 
+    Q::NamedTuple{<:Any, NTuple{Dim, Matrix{T}}}, 
+    N::Int64, ht::T, ε::T, V::Vector{T}, A::SparseMatrixCSC{T,Int64},
+    D::NamedTuple{<:Any, NTuple{Dim, SparseMatrixCSC{T,Int64}}},
+    F1::Function, F2::Function) where {T<:Float64, Dim}
+    # solve HJB equation with control and M
+    println("use non quad hjb")
+    for ti in N:-1:1  
+        lhs = I - ht .* (ε .* A - sum(map((q,d)->spdiagm(q[:,ti])*d, values(Q), values(D))))
+        rhs = U[:,ti+1] + ht .*  ((2/3) .*M[:,ti+1].^0.25 .*sum(map(q->q[:,ti].^2, Q)).^0.75 + V + F2.(M[:,ti+1]))
+        U[:,ti] = lhs \ rhs
+    end
+    return nothing
+end
+
+function compute_res_helper_non_quad(
+    U::Matrix{T}, M::Matrix{T}, 
+    Q::NamedTuple{<:Any, NTuple{4, Matrix{T}}},
+    N::Int64, ht::T, ε::T, V::Vector{T}, A::SparseMatrixCSC{T,Int64},
+    D::NamedTuple{<:Any, NTuple{4, SparseMatrixCSC{T,Int64}}},
+    F1::Function, F2::Function, hs1::T, hs2::T) where {T<:Float64}
+    println("use non quad res")
+
+    resFP, resHJB = 0, 0
+    for ti in 2:N+1
+        lhs =  I/ht -  (ε .* A - sum(map((q,d)->spdiagm(q[:,ti-1])*d, values(Q), values(D))))
+        rhs = M[:,ti-1] ./ ht
+        resFP += sum(abs2.(lhs' *M[:,ti]-rhs))
+    end
+    resFP = sqrt(hs1*hs2*ht*resFP)
+
+    for ti in N:-1:1  
+        lhs = I/ht -  ε .* A
+        rhs = U[:,ti+1] ./ht - (1/3) .*M[:,ti+1].^0.25 .*sum(map(q->q[:,ti].^2, Q)).^0.75 + V + F2.(M[:,ti+1])
+
+        resHJB += sum(abs2.(lhs*U[:,ti]-rhs))
+    end
+    resHJB = sqrt(hs1*hs2*ht*resHJB)
+    return (resFP, resHJB)
 end

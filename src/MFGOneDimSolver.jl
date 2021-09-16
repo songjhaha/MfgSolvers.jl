@@ -28,6 +28,12 @@ function solve_mfg_1d(Problem::MFGOneDim, ::Val{:PI1}, node::Int64, N::Int64, ma
         Q_new = map(copy, Q)
         # Linear operators with periodic boundary
         A, D = build_Linear_operator(node,hs)
+        M_List = typeof(M)[]
+        U_List = typeof(U)[]
+        Q_List = typeof(Q)[]
+        append!(M_List, [copy(M)])
+        append!(U_List, [copy(U)])
+        append!(Q_List, [deepcopy(Q)])
     end
 
     function solve_FP!(M, Q; N=N, ht=ht, ε=ε, A=A, D=D)
@@ -67,6 +73,10 @@ function solve_mfg_1d(Problem::MFGOneDim, ::Val{:PI1}, node::Int64, N::Int64, ma
         M_old = copy(M)
         U_old = copy(U)
 
+        append!(M_List, [copy(M)])
+        append!(U_List, [copy(U)])
+        append!(Q_List, [deepcopy(Q)])
+
         # If converge, compute residual
         if L_dist_Q < 1e-8
             converge = true
@@ -81,7 +91,7 @@ function solve_mfg_1d(Problem::MFGOneDim, ::Val{:PI1}, node::Int64, N::Int64, ma
         end
     end
     history = Solver_history(hist_q,hist_m,hist_u,residual_FP,residual_HJB)
-    result = MFGOneDim_result(converge,M,U,Q,sgrid,tgrid,length(hist_q),history)
+    result = MFGOneDim_result(converge,M,U,Q,sgrid,tgrid,length(hist_q),history,M_List,U_List,Q_List)
 
     return result
 end
@@ -113,6 +123,12 @@ function solve_mfg_1d(Problem::MFGOneDim, ::Val{:PI2}, node::Int64, N::Int64, ma
         Q_tilde = map(copy, Q)
         # Linear operators with periodic boundary
         A, D = build_Linear_operator(node,hs)
+        M_List = typeof(M)[]
+        U_List = typeof(U)[]
+        Q_List = typeof(Q)[]
+        append!(M_List, [copy(M)])
+        append!(U_List, [copy(U)])
+        append!(Q_List, [deepcopy(Q)])
     end
 
 
@@ -153,6 +169,10 @@ function solve_mfg_1d(Problem::MFGOneDim, ::Val{:PI2}, node::Int64, N::Int64, ma
         M_old = copy(M)
         U_old = copy(U)
 
+        append!(M_List, [copy(M)])
+        append!(U_List, [copy(U)])
+        append!(Q_List, [deepcopy(Q)])
+
         # If converge, compute residual
         if L_dist_Q < 1e-8
             converge = true
@@ -167,7 +187,7 @@ function solve_mfg_1d(Problem::MFGOneDim, ::Val{:PI2}, node::Int64, N::Int64, ma
         end
     end
     history = Solver_history(hist_q,hist_m,hist_u,residual_FP,residual_HJB)
-    result = MFGOneDim_result(converge,M,U,Q,sgrid,tgrid,length(hist_q),history)
+    result = MFGOneDim_result(converge,M,U,Q,sgrid,tgrid,length(hist_q),history, M_List, U_List, Q_List)
 
     return result
 end
@@ -191,7 +211,7 @@ end
 
 function Initial_1d_Q(node::Int64, N::Int64)
     # initial guess control QL=QR=0
-    QL = zeros(node,N+1)  
-    QR = zeros(node,N+1)
+    QL = zeros(node,N)  
+    QR = zeros(node,N)
     return (;QL, QR)
 end
