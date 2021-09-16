@@ -1,6 +1,6 @@
 The Policy Algorithm of solving mean field game and mean field type control problem with finite difference method. 
 
-![](http://174.138.21.227/songjhaha/SongjhIMG/raw/branch/master/mfg.png)
+![](mfg.png)
 
 Check the examples in [colab](https://colab.research.google.com/drive/19FLjyv5alw3dq1QeK9zovuAMfIM3LKPE?usp=sharing).
 
