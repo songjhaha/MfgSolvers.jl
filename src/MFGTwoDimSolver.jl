@@ -154,6 +154,7 @@ function solve_mfg_2d(Problem::MFGTwoDim, ::Val{:PI2}, node1::Int64, node2::Int6
 
         resFP, resHJB = compute_res(U, M, Q_new)
         Q, Q_new = Q_new, Q
+    
         
         # record history
         L_dist_M = L_Inf_norm(M-M_old)

@@ -1,6 +1,6 @@
 using LinearAlgebra, SparseArrays
 
-solve_mfg(Problem::MFGOneDim; method=:PI1, node=50, N=100, maxit=80, verbose=true) = solve_mfg_1d(Problem, Val(method), node, N, maxit, verbose)
+solve_mfg(Problem::MFGOneDim; method=:PI1, node=200, N=200, maxit=80, verbose=true) = solve_mfg_1d(Problem, Val(method), node, N, maxit, verbose)
 
 function solve_mfg_1d(Problem::MFGOneDim, ::Val{:PI1}, node::Int64, N::Int64, maxit::Int64, verbose::Bool)
     
@@ -26,6 +26,7 @@ function solve_mfg_1d(Problem::MFGOneDim, ::Val{:PI1}, node::Int64, N::Int64, ma
         M, U, V, M_old, U_old = Initial_1d_state(sgrid, hs, node, N, m0, uT, cal_V)
         Q = Initial_1d_Q(node, N)
         Q_new = map(copy, Q)
+        U[1,end] = U[2,end]
         # Linear operators with periodic boundary
         A, D = build_Linear_operator(node,hs)
         M_List = typeof(M)[]
@@ -121,6 +122,7 @@ function solve_mfg_1d(Problem::MFGOneDim, ::Val{:PI2}, node::Int64, N::Int64, ma
         Q = Initial_1d_Q(node, N)
         Q_new = map(copy, Q)
         Q_tilde = map(copy, Q)
+        U[1,end] = U[2,end]
         # Linear operators with periodic boundary
         A, D = build_Linear_operator(node,hs)
         M_List = typeof(M)[]

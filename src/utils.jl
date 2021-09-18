@@ -2,8 +2,6 @@ using LinearAlgebra, SparseArrays
 
 function L_Inf_norm(u::Array{Float64, 2})
     norm = maximum(abs.(u))
-    # norm = sum(abs2.(u))
-    # norm = sqrt(0.01*0.02^2 * norm)
     return norm
 end
 
@@ -171,23 +169,6 @@ function update_control!(
     Q_new.QR2 .= update_Q.(min.(D.DR2*U[:,1:end-1],0) , M[:,2:end])
     return nothing
 end
-
-# update Q in time ti 
-function update_control!(
-    Q_new::NamedTuple{<:Any, NTuple{4, Matrix{T}}},
-    Uti::Vector{T}, M::Matrix{T},
-    D::NamedTuple{<:Any, NTuple{4, SparseMatrixCSC{T,Int64}}},
-    update_Q::Function, ti::Int64) where {T<:Float64}
-
-    # update control Q from U and M
-    Q_new.QL1[:,ti] = update_Q.(max.(D.DL1*Uti,0) , M[:,ti+1])
-    Q_new.QR1[:,ti] = update_Q.(min.(D.DR1*Uti,0) , M[:,ti+1])
-    Q_new.QL2[:,ti] = update_Q.(max.(D.DL2*Uti,0) , M[:,ti+1])
-    Q_new.QR2[:,ti] = update_Q.(min.(D.DR2*Uti,0) , M[:,ti+1])
-    return nothing
-end
-
-
 
 # Dimension 1
 function compute_res_helper(

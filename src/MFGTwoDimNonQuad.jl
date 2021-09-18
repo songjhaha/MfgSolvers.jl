@@ -67,7 +67,7 @@ function solve_mfg_2d_non_quad(Problem::MFGTwoDim, ::Val{:PI1}, node1::Int64, no
         append!(residual_FP, resFP)
         append!(residual_HJB, resHJB)
 
-        verbose && println("iteraton $(iter), ||Q_{k+1} - Q_{k}|| = $(L_dist_Q)")
+        verbose && println("iteraton $(iter), ||M_{k+1} - M_{k}|| = $(L_dist_M)")
 
         M_old = copy(M)
         U_old = copy(U)
@@ -76,7 +76,7 @@ function solve_mfg_2d_non_quad(Problem::MFGTwoDim, ::Val{:PI1}, node1::Int64, no
         append!(U_List, [copy(U)])
         append!(Q_List, [deepcopy(Q)])
 
-        if L_dist_Q < 1e-8
+        if L_dist_M < 1e-8
             converge = true
             verbose && println("converge!Iteration $iter")
 
@@ -165,7 +165,7 @@ function solve_mfg_2d_non_quad(Problem::MFGTwoDim, ::Val{:PI2}, node1::Int64, no
         append!(residual_FP, resFP)
         append!(residual_HJB, resHJB)
 
-        verbose && println("iteraton $(iter), ||Q_{k+1} - Q_{k}|| = $(L_dist_Q)")
+        verbose && println("iteraton $(iter), ||M_{k+1} - M_{k}|| = $(L_dist_M)")
 
         M_old = copy(M)
         U_old = copy(U)
@@ -174,7 +174,7 @@ function solve_mfg_2d_non_quad(Problem::MFGTwoDim, ::Val{:PI2}, node1::Int64, no
         append!(U_List, [copy(U)])
         append!(Q_List, [deepcopy(Q)])
 
-        if L_dist_Q < 1e-8
+        if L_dist_M < 1e-8
             converge = true
             verbose && println("converge!Iteration $iter")
 
@@ -210,10 +210,10 @@ function update_control_non_quad!(
         DRu2 = min.(D.DR2*U[:,ti],0)
         Du_norm = sqrt.(abs2.(DLu1)+abs2.(DRu1)+abs2.(DLu2)+abs2.(DRu2))
             
-        Q_new.QL1[:,ti] = DLu1 .* Du_norm ./ M[:,ti+1].^0.5 
-        Q_new.QR1[:,ti] = DRu1 .* Du_norm ./ M[:,ti+1].^0.5
-        Q_new.QL2[:,ti] = DLu2 .* Du_norm ./ M[:,ti+1].^0.5
-        Q_new.QR2[:,ti] = DRu2 .* Du_norm ./ M[:,ti+1].^0.5
+        Q_new.QL1[:,ti] = update_Q.(DLu1, Du_norm, M[:,ti+1]) 
+        Q_new.QR1[:,ti] = update_Q.(DRu1, Du_norm, M[:,ti+1]) 
+        Q_new.QL2[:,ti] = update_Q.(DLu2, Du_norm, M[:,ti+1]) 
+        Q_new.QR2[:,ti] = update_Q.(DRu2, Du_norm, M[:,ti+1]) 
     end
     return nothing
 end
@@ -228,7 +228,7 @@ function solve_HJB_helper_non_quad!(
     println("use non quad hjb")
     for ti in N:-1:1  
         lhs = I - ht .* (ε .* A - sum(map((q,d)->spdiagm(q[:,ti])*d, values(Q), values(D))))
-        rhs = U[:,ti+1] + ht .*  ((2/3) .*M[:,ti+1].^0.25 .*sum(map(q->q[:,ti].^2, Q)).^0.75 + V + F2.(M[:,ti+1]))
+        rhs = U[:,ti+1] + ht .*  ((2/3) .*F1.(M[:,ti+1]) .*sum(map(q->q[:,ti].^2, Q)).^0.75 + V + F2.(M[:,ti+1]))
         U[:,ti] = lhs \ rhs
     end
     return nothing
@@ -252,7 +252,7 @@ function compute_res_helper_non_quad(
 
     for ti in N:-1:1  
         lhs = I/ht -  ε .* A
-        rhs = U[:,ti+1] ./ht - (1/3) .*M[:,ti+1].^0.25 .*sum(map(q->q[:,ti].^2, Q)).^0.75 + V + F2.(M[:,ti+1])
+        rhs = U[:,ti+1] ./ht - (1/3) .*F1.(M[:,ti+1]) .*sum(map(q->q[:,ti].^2, Q)).^0.75 + V + F2.(M[:,ti+1])
 
         resHJB += sum(abs2.(lhs*U[:,ti]-rhs))
     end
