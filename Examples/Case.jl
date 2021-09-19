@@ -2,6 +2,9 @@ using MfgSolvers
 using LaTeXStrings
 using Plots
 
+```
+################# case 1 #####################
+```
 function OneDimTest1(method::Symbol)    
     xmin = 0.0    
     xmax = 1.0    
@@ -34,56 +37,9 @@ function OneDimTest1_fixpoint(method::Symbol)
     return re
 end
 
-function TwoDimTest4_PI1(Nh::Int64)
-    xmin1, xmax1, xmin2, xmax2 = 0, 1, 0, 1
-    T = 0.5
-    ε = 0.3
-    m0(x1,x2) = exp(-10((x1-0.25)^2+(x2-0.25)^2))
-    uT(x1,x2) = 1.2*cospi(2*x1) + cospi(2*x2)
-    V(x1,x2) = 0.1
-    F1(m) = m^0.5
-    F2(m) = 0
-    update_Q(Du,m) = Du / F1(m)
-    problem = MFGTwoDim(xmin1,xmax1,xmin2,xmax2,T,ε,m0,uT,V,F1,F2,update_Q)
-    re = solve_mfg(problem;node1=Nh,node2=Nh,N=50) 
-    return re
-end
-
-function TwoDimTest4_PI2(Nh::Int64)
-    xmin1, xmax1, xmin2, xmax2 = 0, 1, 0, 1
-    T = 0.5
-    ε = 0.3
-    m0(x1,x2) = exp(-10((x1-0.25)^2+(x2-0.25)^2))
-    uT(x1,x2) = 1.2*cospi(2*x1) + cospi(2*x2)
-    V(x1,x2) = 0.1
-    F1(m) = m^0.5
-    F2(m) = 0
-    update_Q(Du,m) = Du / F1(m)
-    # Nh=100
-    problem = MFGTwoDim(xmin1,xmax1,xmin2,xmax2,T,ε,m0,uT,V,F1,F2,update_Q) 
-    re_algo2 = solve_mfg(problem;method=:PI2,node1=Nh,node2=Nh,N=50,verbose=true)
-    return re_algo2
-end
-
-function TwoDimTest4_fixpoint(Nh::Int64)
-    xmin1, xmax1, xmin2, xmax2 = 0, 1, 0, 1
-    T = 0.5
-    ε = 0.3
-    m0(x1,x2) = exp(-10((x1-0.25)^2+(x2-0.25)^2))
-    uT(x1,x2) = 1.2*cospi(2*x1) + cospi(2*x2)
-    V(x1,x2) = 0.1
-    F1(m) = m^0.5
-    F2(m) = 0
-    update_Q(Du,m) = Du / F1(m)
-    # Nh = 100
-    problem = MFGTwoDim(xmin1,xmax1,xmin2,xmax2,T,ε,m0,uT,V,F1,F2,update_Q) 
-    re_algo2 = solve_mfg_fixpoint(problem;method=:FixPoint2,node1=Nh,node2=Nh,N=50,maxit=100,verbose=true)
-    return re_algo2
-end
-
 re_OneDim = OneDimTest1(:PI1)
 
-# q* get when |q-q|<1e-10
+# q* get when |q^{k+1}-q^{k}|<1e-10 with fixed point
 re_OneDim_fixpoint = OneDimTest1_fixpoint(:FixPoint2)
 # case1
 begin
@@ -137,13 +93,60 @@ end
 plot!(hist[1:end],yaxis=:log, label=L"\Vert u^{(k)}-u^{*} \Vert")
 savefig("figures/total_converge_case1.pdf")
 
+
+```
+################## case2 ###########################
+```
+
+function TwoDimTest4_PI1(Nh::Int64)
+    xmin1, xmax1, xmin2, xmax2 = 0, 1, 0, 1
+    T = 0.5
+    ε = 0.3
+    m0(x1,x2) = exp(-10((x1-0.25)^2+(x2-0.25)^2))
+    uT(x1,x2) = 1.2*cospi(2*x1) + cospi(2*x2)
+    V(x1,x2) = 0.1
+    F1(m) = m^0.5
+    F2(m) = 0
+    update_Q(Du,m) = Du / F1(m)
+    problem = MFGTwoDim(xmin1,xmax1,xmin2,xmax2,T,ε,m0,uT,V,F1,F2,update_Q)
+    re = solve_mfg(problem;node1=Nh,node2=Nh,N=50) 
+    return re
+end
+
+function TwoDimTest4_PI2(Nh::Int64)
+    xmin1, xmax1, xmin2, xmax2 = 0, 1, 0, 1
+    T = 0.5
+    ε = 0.3
+    m0(x1,x2) = exp(-10((x1-0.25)^2+(x2-0.25)^2))
+    uT(x1,x2) = 1.2*cospi(2*x1) + cospi(2*x2)
+    V(x1,x2) = 0.1
+    F1(m) = m^0.5
+    F2(m) = 0
+    update_Q(Du,m) = Du / F1(m)
+    # Nh=100
+    problem = MFGTwoDim(xmin1,xmax1,xmin2,xmax2,T,ε,m0,uT,V,F1,F2,update_Q) 
+    re_algo2 = solve_mfg(problem;method=:PI2,node1=Nh,node2=Nh,N=50,verbose=true)
+    return re_algo2
+end
+
+function TwoDimTest4_fixpoint(Nh::Int64)
+    xmin1, xmax1, xmin2, xmax2 = 0, 1, 0, 1
+    T = 0.5
+    ε = 0.3
+    m0(x1,x2) = exp(-10((x1-0.25)^2+(x2-0.25)^2))
+    uT(x1,x2) = 1.2*cospi(2*x1) + cospi(2*x2)
+    V(x1,x2) = 0.1
+    F1(m) = m^0.5
+    F2(m) = 0
+    update_Q(Du,m) = Du / F1(m)
+    # Nh = 100
+    problem = MFGTwoDim(xmin1,xmax1,xmin2,xmax2,T,ε,m0,uT,V,F1,F2,update_Q) 
+    re_algo2 = solve_mfg_fixpoint(problem;method=:FixPoint2,node1=Nh,node2=Nh,N=50,maxit=100,verbose=true)
+    return re_algo2
+end
 re_PI1 = TwoDimTest4_PI1(50)
 re_PI2_Nh50 = TwoDimTest4_PI2(50)
-re_fixpoint2_Nh50 = TwoDimTest4_fixpoint(50)
-
-# q* get when |m-m|<1e-10
-
-
+re_fixpoint2_Nh50 = TwoDimTest4_fixpoint(50) # q* get when |m^{k+1}-m^{k}|<1e-10
 
 TwoDimTest4_PI2(50)
 for i in 1:10 
@@ -179,7 +182,7 @@ plot!(re_PI2_Nh50.history.residual_FP, yaxis=:log, label="Policy Iteration")
 savefig("figures/residual_FP_Nh50.pdf")
 
 
-# PI1 & PI2
+# PI1 & PI2 residual
 plot(re_PI1.history.residual_HJB, yaxis=:log, label="PI1-HJB")
 plot!(re_PI2_Nh50.history.residual_HJB, linestyles=:dash, yaxis=:log, label="PI2-HJB")
 # savefig("residual_HJB_PI1_2.pdf")
@@ -189,7 +192,7 @@ plot!(re_PI2_Nh50.history.residual_FP, linestyles=:dash, yaxis=:log, label="PI2-
 savefig("figures/residual_PI1_2.pdf")
 
 begin
-# converge case2 PI1&PI2
+# converge case2 PI1&PI2 |q^{k+1}-q^{k}|
     plot(re_PI1.history.hist_q, yaxis=:log, label="PI1")
     plot!(re_PI2_Nh50.history.hist_q, yaxis=:log, label="PI2")
     savefig("converge_case2_q.pdf")
@@ -201,7 +204,7 @@ begin
     savefig("converge_case2_u.pdf")
 end
 
-
+# |q^{k}-q^*|
 hist = Float64[]
 for Q in re_PI1.Q_List
     dist = maximum(map(L_inf_dist, Q, re_fixpoint2_Nh50.Q))
@@ -248,7 +251,9 @@ plot!(hist[1:end],yaxis=:log, label="PI2")
 savefig("figures/total_converge_case2_u.pdf")
 
 
-
+```
+################ case3 ######################
+```
 function non_quad()
     xmin1, xmax1, xmin2, xmax2 = 0, 1, 0, 1
     T = 0.5

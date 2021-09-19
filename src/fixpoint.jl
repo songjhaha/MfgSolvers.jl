@@ -4,7 +4,7 @@ solve_mfg_fixpoint(Problem::MFGTwoDim; method=:FixPoint2, node1=50, node2=50, N=
 
 function solve_mfg_fixpoint_2d(Problem::MFGTwoDim, ::Val{:FixPoint2}, node1::Int64, node2::Int64, N::Int64, maxit::Int64, verbose::Bool)
     xmin1, xmax1, xmin2, xmax2, T, ε, m0, uT, cal_V, F1, F2, update_Q = Problem.xmin1, Problem.xmax1, Problem.xmin2, Problem.xmax2, Problem.T, Problem.ε, Problem.m0, Problem.uT, Problem.V, Problem.F1, Problem.F2, Problem.update_Q
-    println("start solving with fixPoint iteration")
+    verbose && println("start solving with fixPoint iteration")
     begin    
         hs1 = (xmax1-xmin1)/node1
         hs2 = (xmax2-xmin2)/node2
@@ -192,7 +192,7 @@ solve_mfg_fixpoint(Problem::MFGOneDim; method=:FixPoint2, node=200, N=200, maxit
 
 function solve_mfg_fixpoint_1d(Problem::MFGOneDim, ::Val{:FixPoint2}, node::Int64, N::Int64, maxit::Int64, verbose::Bool)
     xmin, xmax, T, ε, m0, uT, cal_V, F1, F2, update_Q = Problem.xmin, Problem.xmax, Problem.T, Problem.ε, Problem.m0, Problem.uT, Problem.V, Problem.F1, Problem.F2, Problem.update_Q
-    println("start with fixed point iteration")
+    verbose && println("start with fixed point iteration")
     begin
         hs = (xmax-xmin)/node
         ht = T/N

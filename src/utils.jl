@@ -170,6 +170,11 @@ function update_control!(
     return nothing
 end
 
+
+```
+when compute residual,still use the formula in policy iteration,
+because we compute the 
+```
 # Dimension 1
 function compute_res_helper(
     U::Matrix{T}, M::Matrix{T}, 
