@@ -1,11 +1,12 @@
 using LinearAlgebra, SparseArrays
 
+# Inf norm 
 function L_Inf_norm(u::Array{Float64, 2})
     norm = maximum(abs.(u))
     return norm
 end
 
-
+# Dimension 1 linear operators
 function build_Linear_operator(node::Int,hs::Float64)
     temp1 = 1/hs^2
     temp2 = 1/hs
@@ -23,6 +24,7 @@ function build_Linear_operator(node::Int,hs::Float64)
     return (Δ,(;DL,DR))
 end
 
+# Dimension 2 linear operators, build by kron prod
 function build_Linear_operator_TwoDim(node1::Int,node2::Int, hs1::Float64,hs2::Float64)
     Δ1,D1 = build_Linear_operator(node1,hs1)
     Δ2,D2 = build_Linear_operator(node2,hs2)
@@ -114,6 +116,10 @@ end
 Base.show(io::IO, m::MIME"text/plain", x::MFGResult) = show(io, x)
 
 
+############# helper function for solve linear FP, HJB, and compute residual ##########
+```
+when solve FP use the tranpose of lhs in HJB.
+```
 function solve_FP_helper!(
     M::Matrix{Float64}, 
     Q::NamedTuple{<:Any, NTuple{Dim, Matrix{T}}},
@@ -142,6 +148,10 @@ function solve_HJB_helper!(
     return nothing
 end
 
+```
+update Q_n = Du_n/F1(M_{n+1})
+so the Hamiltonian always use M_{n+1} term.
+```
 # Dimension 1
 function update_control!(
     Q_new::NamedTuple{<:Any, NTuple{2, Matrix{T}}},
@@ -170,10 +180,10 @@ function update_control!(
     return nothing
 end
 
-
 ```
 when compute residual,still use the formula in policy iteration,
-because we compute the 
+because after update Q, the plug Q_new in mfg system, get same result
+as nonlinear one.
 ```
 # Dimension 1
 function compute_res_helper(

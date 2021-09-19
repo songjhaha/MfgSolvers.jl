@@ -8,3 +8,6 @@ There are some code could be optimized to get more efficiency.
 
 Now only support periodic boundary contion and 1d/2d problem.
 
+the main code about policy iteration is as:
+![](PI_code.png)
+the help function could be found in `src/utils.jl`
