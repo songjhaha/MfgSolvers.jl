@@ -148,17 +148,6 @@ re_PI1 = TwoDimTest4_PI1(50)
 re_PI2_Nh50 = TwoDimTest4_PI2(50)
 re_fixpoint2_Nh50 = TwoDimTest4_fixpoint(50) # q* get when |m^{k+1}-m^{k}|<1e-10
 
-TwoDimTest4_PI2(50)
-for i in 1:10 
-    # 24.74s for 25 iterations
-    TwoDimTest4_PI2(50)
-end
-
-TwoDimTest4_fixpoint(50)
-for i in 1:10 
-    TwoDimTest4_fixpoint(50) # 49.80s for 25 iterations
-end
-
 
 # Mass policy iteration
 contour(re_PI2_Nh50.sgrid2,re_PI2_Nh50.sgrid1,re_PI2_Nh50.M[:,:,1],c=:rainbow,size=(450,400))
@@ -288,3 +277,59 @@ plot!(re_non_quad.history.hist_u, yaxis=:log, label="u")
 plot(re_non_quad.history.residual_HJB, yaxis=:log, label="HJB")
 plot!(re_non_quad.history.residual_FP, yaxis=:log, label="FP")
 
+
+```
+########## compute cost ##############
+```
+
+# stop when reach  maxit
+function TwoDimTest4_PI_cost(maxit::Int64)
+    xmin1, xmax1, xmin2, xmax2 = 0, 1, 0, 1
+    T = 0.5
+    ε = 0.3
+    m0(x1,x2) = exp(-10((x1-0.25)^2+(x2-0.25)^2))
+    uT(x1,x2) = 1.2*cospi(2*x1) + cospi(2*x2)
+    V(x1,x2) = 0.1
+    F1(m) = m^0.5
+    F2(m) = 0
+    update_Q(Du,m) = Du / F1(m)
+    
+    problem = MFGTwoDim(xmin1,xmax1,xmin2,xmax2,T,ε,m0,uT,V,F1,F2,update_Q) 
+    re_algo2 = solve_mfg(problem;method=:PI2,node1=50,node2=50,N=50,maxit=maxit,verbose=false)
+    return re_algo2
+end
+
+# stop when reach maxit 
+function TwoDimTest4_fixpoint_cost(maxit::Int64)
+    xmin1, xmax1, xmin2, xmax2 = 0, 1, 0, 1
+    T = 0.5
+    ε = 0.3
+    m0(x1,x2) = exp(-10((x1-0.25)^2+(x2-0.25)^2))
+    uT(x1,x2) = 1.2*cospi(2*x1) + cospi(2*x2)
+    V(x1,x2) = 0.1
+    F1(m) = m^0.5
+    F2(m) = 0
+    update_Q(Du,m) = Du / F1(m)
+    
+    problem = MFGTwoDim(xmin1,xmax1,xmin2,xmax2,T,ε,m0,uT,V,F1,F2,update_Q) 
+    re_algo2 = solve_mfg_fixpoint(problem;method=:FixPoint2,node1=50,node2=50,N=50,maxit=maxit,verbose=false)
+    return re_algo2
+end
+
+# warm up
+@time TwoDimTest4_PI_cost(29)
+@time TwoDimTest4_fixpoint_cost(27)
+
+@time for i in 1:5
+    TwoDimTest4_PI_cost(29)
+end 
+@time for i in 1:5
+    TwoDimTest4_fixpoint_cost(27)
+end
+
+@time for i in 1:5
+    TwoDimTest4_PI_cost(25)
+end
+@time for i in 1:5
+    TwoDimTest4_fixpoint_cost(25)
+end 
