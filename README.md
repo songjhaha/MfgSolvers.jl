@@ -10,7 +10,7 @@ Now only support periodic boundary condition and 1d/2d problem.
 
 the main code about policy iteration is as:
 
-```{julia}
+```julia
 # println("start Policy Iteration")
 for iter in 1:maxit
     solve_FP!(M, Q)
