@@ -2,9 +2,9 @@ using MfgSolvers
 using LaTeXStrings
 using Plots
 
-```
+"""
 ################# case 1 #####################
-```
+"""
 function OneDimTest1(method::Symbol)    
     xmin = 0.0    
     xmax = 1.0    
@@ -94,9 +94,9 @@ plot!(hist[1:end],yaxis=:log, label=L"\Vert u^{(k)}-u^{*} \Vert")
 savefig("figures/total_converge_case1.pdf")
 
 
-```
+"""
 ################## case2 ###########################
-```
+"""
 
 function TwoDimTest4_PI1(Nh::Int64)
     xmin1, xmax1, xmin2, xmax2 = 0, 1, 0, 1
@@ -240,9 +240,9 @@ plot!(hist[1:end],yaxis=:log, label="PI2")
 savefig("figures/total_converge_case2_u.pdf")
 
 
-```
+"""
 ################ case3 ######################
-```
+"""
 function non_quad()
     xmin1, xmax1, xmin2, xmax2 = 0, 1, 0, 1
     T = 0.5
@@ -278,9 +278,9 @@ plot(re_non_quad.history.residual_HJB, yaxis=:log, label="HJB")
 plot!(re_non_quad.history.residual_FP, yaxis=:log, label="FP")
 
 
-```
+"""
 ########## compute cost ##############
-```
+"""
 
 # stop when reach  maxit
 function TwoDimTest4_PI_cost(maxit::Int64)

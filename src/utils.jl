@@ -117,9 +117,9 @@ Base.show(io::IO, m::MIME"text/plain", x::MFGResult) = show(io, x)
 
 
 ############# helper function for solve linear FP, HJB, and compute residual ##########
-```
+"""
 when solve FP use the tranpose of lhs in HJB.
-```
+"""
 function solve_FP_helper!(
     M::Matrix{Float64}, 
     Q::NamedTuple{<:Any, NTuple{Dim, Matrix{T}}},
@@ -148,10 +148,10 @@ function solve_HJB_helper!(
     return nothing
 end
 
-```
+"""
 update Q_n = Du_n/F1(M_{n+1})
 so the Hamiltonian always use M_{n+1} term.
-```
+"""
 # Dimension 1
 function update_control!(
     Q_new::NamedTuple{<:Any, NTuple{2, Matrix{T}}},
@@ -180,11 +180,11 @@ function update_control!(
     return nothing
 end
 
-```
+"""
 when compute residual,still use the formula in policy iteration,
 because after update Q, the plug Q_new in mfg system, get same result
 as nonlinear one.
-```
+"""
 # Dimension 1
 function compute_res_helper(
     U::Matrix{T}, M::Matrix{T}, 
