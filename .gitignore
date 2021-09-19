@@ -2,3 +2,5 @@ Manifest.toml
 .gitignore
 bench.jl
 *.pdf
+Example.jl
+al_fixpoint.jl
