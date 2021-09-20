@@ -96,7 +96,7 @@ for U in re_OneDim.U_List
     append!(hist,dist)
 end
 plot!(hist[1:40],yaxis=:log, lw=2, label=L"\Vert u^{(k)}-u^{*} \Vert")
-xlabel!("Iterations")
+xlabel!("Iteration")
 savefig("figures/total_converge_case1.pdf")
 
 
@@ -202,13 +202,13 @@ savefig("figures/M_case2_t05_heatmap.pdf")
 # residual fixPoint & PI2
 plot(re_fixpoint2_Nh50.history.residual_HJB, lw=2, yaxis=:log, label="Fixed Point Iteration")
 plot!(re_PI2_Nh50.history.residual_HJB, lw=2, yaxis=:log, label="Policy Iteration")
-xlabel!("Iterations")
+xlabel!("Iteration")
 ylabel!("Residual of HJB")
 savefig("figures/residual_HJB_Nh50.pdf")
 
 plot(re_fixpoint2_Nh50.history.residual_FP, lw=2, yaxis=:log, label="Fixed Point Iteration")
 plot!(re_PI2_Nh50.history.residual_FP, lw=2, yaxis=:log, label="Policy Iteration")
-xlabel!("Iterations")
+xlabel!("Iteration")
 ylabel!("Residual of FP")
 savefig("figures/residual_FP_Nh50.pdf")
 
@@ -219,7 +219,7 @@ plot!(re_PI2_Nh50.history.residual_HJB, lw=2, linestyles=:dash, yaxis=:log, labe
 # savefig("residual_HJB_PI1_2.pdf")
 plot!(re_PI1.history.residual_FP, lw=2, yaxis=:log, label="PI1-FP")
 plot!(re_PI2_Nh50.history.residual_FP, lw=2, linestyles=:dash, yaxis=:log, label="PI2-FP")
-xlabel!("Iterations")
+xlabel!("Iteration")
 ylabel!("Residual")
 savefig("figures/residual_PI1_2.pdf")
 
@@ -250,7 +250,7 @@ for Q in re_PI2_Nh50.Q_List
     append!(hist,dist)
 end
 plot!(hist[1:end],yaxis=:log, lw=2, label="PI2")
-xlabel!("Iterations")
+xlabel!("Iteration")
 savefig("figures/total_converge_case2_q.pdf")
 
 hist = Float64[]
@@ -266,7 +266,7 @@ for M in re_PI2_Nh50.M_List
     append!(hist,dist)
 end
 plot!(hist[1:end],yaxis=:log, lw=2, label="PI2")
-xlabel!("Iterations")
+xlabel!("Iteration")
 savefig("figures/total_converge_case2_m.pdf")
 
 hist = Float64[]
@@ -282,7 +282,7 @@ for U in re_PI2_Nh50.U_List
     append!(hist,dist)
 end
 plot!(hist[1:end],yaxis=:log, lw=2, label="PI2")
-xlabel!("Iterations")
+xlabel!("Iteration")
 savefig("figures/total_converge_case2_u.pdf")
 
 
@@ -363,6 +363,7 @@ plot!(re_non_quad.history.residual_FP, yaxis=:log, label="FP")
 # V(x1,x2) = 2x1+x2
 # v = V.(x1,x2')
 # contour(x2,x1,v)
+# the Horizontal axis is x2 and vertical axis is x1
 
 """
 ########## compute cost ##############
