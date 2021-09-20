@@ -202,8 +202,8 @@ function compute_res_helper(
     resFP = sqrt(hs*ht*resFP)
 
     for ti in N:-1:1  
-        lhs = I/ht - (ε .* A - sum(map((q,d)->spdiagm(q[:,ti])*d, values(Q), values(D))))
-        rhs = U[:,ti+1] ./ ht + (0.5 .*  (F1.(M[:,ti+1])) .*sum(map(q->q[:,ti].^2, Q)) + V + F2.(M[:,ti+1]))
+        lhs = I/ht - ε .* A
+        rhs = U[:,ti+1] ./ ht - 0.5 .*  (F1.(M[:,ti+1])) .*sum(map(q->q[:,ti].^2, Q)) + V + F2.(M[:,ti+1])
     
         resHJB += sum(abs2.(lhs*U[:,ti]-rhs))
     end
@@ -228,8 +228,8 @@ function compute_res_helper(
     resFP = sqrt(hs1*hs2*ht*resFP)
 
     for ti in N:-1:1  
-        lhs = I/ht -  (ε .* A - sum(map((q,d)->spdiagm(q[:,ti])*d, values(Q), values(D))))
-        rhs = U[:,ti+1] ./ht + (0.5 .*  (F1.(M[:,ti+1])) .*sum(map(q->q[:,ti].^2, Q)) + V + F2.(M[:,ti+1]))
+        lhs = I/ht -  ε .* A 
+        rhs = U[:,ti+1] ./ht - 0.5 .*  (F1.(M[:,ti+1])) .*sum(map(q->q[:,ti].^2, Q)) + V + F2.(M[:,ti+1])
     
         resHJB += sum(abs2.(lhs*U[:,ti]-rhs))
     end
