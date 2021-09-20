@@ -382,7 +382,7 @@ function TwoDimTest4_PI_cost(maxit::Int64)
     update_Q(Du,m) = Du / F1(m)
     
     problem = MFGTwoDim(xmin1,xmax1,xmin2,xmax2,T,ε,m0,uT,V,F1,F2,update_Q) 
-    re_algo2 = solve_mfg(problem;method=:PI2,node1=50,node2=50,N=50,maxit=maxit,verbose=false)
+    re_algo2 = solve_mfg(problem;method=:PI2,node1=50,node2=50,N=50,maxit=maxit,tol=1e-16,verbose=false)
     return re_algo2
 end
 
@@ -399,7 +399,7 @@ function TwoDimTest4_fixpoint_cost(maxit::Int64)
     update_Q(Du,m) = Du / F1(m)
     
     problem = MFGTwoDim(xmin1,xmax1,xmin2,xmax2,T,ε,m0,uT,V,F1,F2,update_Q) 
-    re_algo2 = solve_mfg_fixpoint(problem;method=:FixPoint2,node1=50,node2=50,N=50,maxit=maxit,verbose=false)
+    re_algo2 = solve_mfg_fixpoint(problem;method=:FixPoint2,node1=50,node2=50,N=50,tol=1e-16,maxit=maxit,verbose=false)
     return re_algo2
 end
 
@@ -409,22 +409,22 @@ end
 
 @time for i in 1:5
     TwoDimTest4_PI_cost(29)
-end 
+end # avg 48.04
 @time for i in 1:5
     TwoDimTest4_fixpoint_cost(27)
-end
+end # avg 61.74
 
 @time for i in 1:5
     TwoDimTest4_PI_cost(25)
-end
+end # avg 39.90
 @time for i in 1:5
     TwoDimTest4_fixpoint_cost(25)
-end 
+end # avg 57.18
 
 @time for i in 1:5
-    TwoDimTest4_PI_cost(80)
-end
+    TwoDimTest4_PI_cost(60)
+end # 98.21
 @time for i in 1:5
-    TwoDimTest4_fixpoint_cost(80)
-end 
+    TwoDimTest4_fixpoint_cost(60)
+end # 114.57
 
