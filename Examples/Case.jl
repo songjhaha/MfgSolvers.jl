@@ -404,8 +404,8 @@ function TwoDimTest4_fixpoint_cost(maxit::Int64)
 end
 
 # warm up
-@time TwoDimTest4_PI_cost(29)
-@time TwoDimTest4_fixpoint_cost(27)
+@time TwoDimTest4_PI_cost(10)
+@time TwoDimTest4_fixpoint_cost(10)
 
 @time for i in 1:5
     TwoDimTest4_PI_cost(29)
@@ -420,3 +420,11 @@ end
 @time for i in 1:5
     TwoDimTest4_fixpoint_cost(25)
 end 
+
+@time for i in 1:5
+    TwoDimTest4_PI_cost(80)
+end
+@time for i in 1:5
+    TwoDimTest4_fixpoint_cost(80)
+end 
+
