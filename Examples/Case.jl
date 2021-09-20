@@ -156,28 +156,47 @@ re_PI2_Nh50 = TwoDimTest4_PI2(50)
 re_fixpoint2_Nh50 = TwoDimTest4_fixpoint(50) 
 # q* get with 80 iteration 
 
-
 # Mass policy iteration 2
-heatmap(re_PI2_Nh50.sgrid2,re_PI2_Nh50.sgrid1,re_PI2_Nh50.M[:,:,1],c=:rainbow,size=(580,520))
+contour(re_PI2_Nh50.sgrid2,re_PI2_Nh50.sgrid1,re_PI2_Nh50.M[:,:,1],fill=true,c=:rainbow,size=(580,520))
 xlabel!("x2")
 ylabel!("x1")
 savefig("figures/M_case2_t0.pdf")
 
-heatmap(re_PI2_Nh50.sgrid2,re_PI2_Nh50.sgrid1,re_PI2_Nh50.M[:,:,17],c=:rainbow,size=(580,520))
+contour(re_PI2_Nh50.sgrid2,re_PI2_Nh50.sgrid1,re_PI2_Nh50.M[:,:,17],fill=true,c=:rainbow,size=(580,520))
 xlabel!("x2")
 ylabel!("x1")
 savefig("figures/M_case2_t016.pdf")
 
-heatmap(re_PI2_Nh50.sgrid2,re_PI2_Nh50.sgrid1,re_PI2_Nh50.M[:,:,34],c=:rainbow,size=(580,520))
+contour(re_PI2_Nh50.sgrid2,re_PI2_Nh50.sgrid1,re_PI2_Nh50.M[:,:,34],fill=true,c=:rainbow,size=(580,520))
 xlabel!("x2")
 ylabel!("x1")
 savefig("figures/M_case2_t033.pdf")
 
-heatmap(re_PI2_Nh50.sgrid2,re_PI2_Nh50.sgrid1,re_PI2_Nh50.M[:,:,end],levels=0:0.5:4.5,c=:rainbow,size=(580,520))
+contour(re_PI2_Nh50.sgrid2,re_PI2_Nh50.sgrid1,re_PI2_Nh50.M[:,:,end],fill=true,c=:rainbow,size=(580,520))
 xlabel!("x2")
 ylabel!("x1")
 savefig("figures/M_case2_t05.pdf")
 
+# Mass policy iteration 2 heatmap
+heatmap(re_PI2_Nh50.sgrid2,re_PI2_Nh50.sgrid1,re_PI2_Nh50.M[:,:,1],c=:rainbow,size=(580,520))
+xlabel!("x2")
+ylabel!("x1")
+savefig("figures/M_case2_t0_heatmap.pdf")
+
+heatmap(re_PI2_Nh50.sgrid2,re_PI2_Nh50.sgrid1,re_PI2_Nh50.M[:,:,17],c=:rainbow,size=(580,520))
+xlabel!("x2")
+ylabel!("x1")
+savefig("figures/M_case2_t016_heatmap.pdf")
+
+heatmap(re_PI2_Nh50.sgrid2,re_PI2_Nh50.sgrid1,re_PI2_Nh50.M[:,:,34],c=:rainbow,size=(580,520))
+xlabel!("x2")
+ylabel!("x1")
+savefig("figures/M_case2_t033_heatmap.pdf")
+
+heatmap(re_PI2_Nh50.sgrid2,re_PI2_Nh50.sgrid1,re_PI2_Nh50.M[:,:,end],c=:rainbow,size=(580,520))
+xlabel!("x2")
+ylabel!("x1")
+savefig("figures/M_case2_t05_heatmap.pdf")
 
 
 # residual fixPoint & PI2
@@ -288,28 +307,48 @@ end
 
 re_non_quad = non_quad()
 
-# Mass policy iteration
-heatmap(re_non_quad.sgrid2,re_non_quad.sgrid1,re_non_quad.M[:,:,1],c=:rainbow,size=(580,520))
+# Mass policy iteration contour
+contour(re_non_quad.sgrid2,re_non_quad.sgrid1,re_non_quad.M[:,:,1],fill=true,c=:rainbow,size=(580,520))
 xlabel!("x2")
 ylabel!("x1")
 savefig("figures/M_case3_t0.pdf")
 
-heatmap(re_non_quad.sgrid2,re_non_quad.sgrid1,re_non_quad.M[:,:,17],c=:rainbow,size=(580,520))
+contour(re_non_quad.sgrid2,re_non_quad.sgrid1,re_non_quad.M[:,:,17],fill=true,c=:rainbow,size=(580,520))
 xlabel!("x2")
 ylabel!("x1")
 savefig("figures/M_case3_t016.pdf")
 
-heatmap(re_non_quad.sgrid2,re_non_quad.sgrid1,re_non_quad.M[:,:,34],c=:rainbow,size=(580,520))
+contour(re_non_quad.sgrid2,re_non_quad.sgrid1,re_non_quad.M[:,:,34],fill=true,c=:rainbow,size=(580,520))
 xlabel!("x2")
 ylabel!("x1")
 savefig("figures/M_case3_t033.pdf")
 
-heatmap(re_non_quad.sgrid2,re_non_quad.sgrid1,re_non_quad.M[:,:,end],c=:rainbow,size=(580,520))
+contour(re_non_quad.sgrid2,re_non_quad.sgrid1,re_non_quad.M[:,:,end],fill=true,c=:rainbow,size=(580,520))
 xlabel!("x2")
 ylabel!("x1")
 savefig("figures/M_case3_t05.pdf")
 
-contour(re_non_quad.sgrid2,re_non_quad.sgrid1,re_non_quad.M[:,:,end],fill=true,c=:rainbow,size=(580,520))
+
+# Mass policy iteration heatmap
+heatmap(re_non_quad.sgrid2,re_non_quad.sgrid1,re_non_quad.M[:,:,1],c=:rainbow,size=(580,520))
+xlabel!("x2")
+ylabel!("x1")
+savefig("figures/M_case3_t0_heatmap.pdf")
+
+heatmap(re_non_quad.sgrid2,re_non_quad.sgrid1,re_non_quad.M[:,:,17],c=:rainbow,size=(580,520))
+xlabel!("x2")
+ylabel!("x1")
+savefig("figures/M_case3_t016_heatmap.pdf")
+
+heatmap(re_non_quad.sgrid2,re_non_quad.sgrid1,re_non_quad.M[:,:,34],c=:rainbow,size=(580,520))
+xlabel!("x2")
+ylabel!("x1")
+savefig("figures/M_case3_t033_heatmap.pdf")
+
+heatmap(re_non_quad.sgrid2,re_non_quad.sgrid1,re_non_quad.M[:,:,end],c=:rainbow,size=(580,520))
+xlabel!("x2")
+ylabel!("x1")
+savefig("figures/M_case3_t05_heatmap.pdf")
 
 
 plot(re_non_quad.history.hist_q, yaxis=:log, label="q")
@@ -318,6 +357,12 @@ plot!(re_non_quad.history.hist_u, yaxis=:log, label="u")
 plot(re_non_quad.history.residual_HJB, yaxis=:log, label="HJB")
 plot!(re_non_quad.history.residual_FP, yaxis=:log, label="FP")
 
+# example of GR's contour
+# x1 = 0:0.1:1
+# x2 = 1:0.05:2
+# V(x1,x2) = 2x1+x2
+# v = V.(x1,x2')
+# contour(x2,x1,v)
 
 """
 ########## compute cost ##############
