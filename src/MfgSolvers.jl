@@ -2,6 +2,8 @@ module MfgSolvers
 using LinearAlgebra, SparseArrays
 
 include("utils.jl")
+include("helper.jl")
+include("residual.jl")
 include("MFGOneDimSolver.jl")
 include("MFGTwoDimSolver.jl")
 include("fixpoint.jl")

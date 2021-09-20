@@ -47,7 +47,7 @@ function solve_mfg_fixpoint_2d(Problem::MFGTwoDim, ::Val{:FixPoint2}, node1::Int
     end
 
     function compute_res(U, M, Q; N=N, ht=ht, ε=ε, V=V, A=A, D=D, F1=F1, F2=F2, hs1=hs1, hs2=hs2)
-        compute_res_fixpoint(U, M, Q, N, ht, ε, V, A, D, F1, F2, hs1, hs2)
+        compute_res_helper(U, M, Q, N, ht, ε, V, A, D, F1, F2, hs1, hs2)
     end
 
     # println("start Policy Iteration")
@@ -99,92 +99,6 @@ function solve_mfg_fixpoint_2d(Problem::MFGTwoDim, ::Val{:FixPoint2}, node1::Int
     return result
 end
 
-function solve_HJB_fixpoint_helper!(
-    U_new::Matrix{T}, U_old::Matrix{T}, M::Matrix{T}, 
-    Q::NamedTuple{<:Any, NTuple{4, Matrix{T}}}, 
-    N::Int64, ht::T, ε::T, V::Vector{T}, A::SparseMatrixCSC{T,Int64},
-    D::NamedTuple{<:Any, NTuple{4, SparseMatrixCSC{T,Int64}}},
-    F1::Function, F2::Function, update_Q::Function,hs1::T,hs2::T) where {T<:Float64, Dim}
-    """
-    Q = DU_old / F1(M) 
-    jacon * W = -res
-    U_new = U_old + W   # loop with t
-    """
-    
-    # update U with U_old and M
-    for ti in N:-1:1
-        U_temp = copy(U_old[:,ti])
-        # U_temp = copy(U_new[:,ti+1])
-        update_control!(Q, U_temp, M, D, update_Q, ti)
-
-        for inner_it in 1:300
-            jacon = 1/ht*I -  ε .* A + 1 .*
-                (spdiagm(Q.QL1[:,ti])*D.DL1 + spdiagm(Q.QR1[:,ti])*D.DR1 +
-                spdiagm(Q.QL2[:,ti])*D.DL2 + spdiagm(Q.QR2[:,ti])*D.DR2)
-
-            res = -(U_new[:,ti+1]-U_temp) ./ ht - ε .* A*U_temp + 
-                    0.5 .* F1.(M[:,ti+1]) .* (Q.QL1[:,ti].^2 + Q.QR1[:,ti].^2 + Q.QL2[:,ti].^2 + Q.QR2[:,ti].^2) -
-                    V - F2.(M[:,ti+1])
-            
-            if sqrt(hs1*hs2)*norm(res) < 1e-12
-                # println("norm_HJB_res: $(norm(res)), ti: $ti, inner_it: $inner_it") 
-                U_new[:,ti] = U_temp
-                # println("solve inner HJB") 
-                break
-            elseif inner_it==300
-                println("inner HJB solver not converge")
-                # println("update U_temp with Newton method")
-                U_temp = jacon \ (-res) + U_temp
-                update_control!(Q, U_temp, M, D, update_Q, ti)
-            else
-                # println("update U_temp with Newton method")
-                U_temp = jacon \ (-res) + U_temp
-                update_control!(Q, U_temp, M, D, update_Q, ti)
-            end
-        end
-    end
-    return nothing
-end
-
-# update Q in time ti 
-function update_control!(
-    Q_new::NamedTuple{<:Any, NTuple{4, Matrix{T}}},
-    Uti::Vector{T}, M::Matrix{T},
-    D::NamedTuple{<:Any, NTuple{4, SparseMatrixCSC{T,Int64}}},
-    update_Q::Function, ti::Int64) where {T<:Float64}
-    # update control Q from U and M
-    Q_new.QL1[:,ti] = update_Q.(max.(D.DL1*Uti,0) , M[:,ti+1])
-    Q_new.QR1[:,ti] = update_Q.(min.(D.DR1*Uti,0) , M[:,ti+1])
-    Q_new.QL2[:,ti] = update_Q.(max.(D.DL2*Uti,0) , M[:,ti+1])
-    Q_new.QR2[:,ti] = update_Q.(min.(D.DR2*Uti,0) , M[:,ti+1])
-    return nothing
-end
-
-function compute_res_fixpoint(
-    U::Matrix{T}, M::Matrix{T}, 
-    Q::NamedTuple{<:Any, NTuple{4, Matrix{T}}},
-    N::Int64, ht::T, ε::T, V::Vector{T}, A::SparseMatrixCSC{T,Int64},
-    D::NamedTuple{<:Any, NTuple{4, SparseMatrixCSC{T,Int64}}},
-    F1::Function, F2::Function, hs1::T, hs2::T) where {T<:Float64}
-
-    resFP, resHJB = 0, 0
-    for ti in 2:N+1
-        lhs =  I/ht - (ε .* A - sum(map((q,d)->spdiagm(q[:,ti-1])*d, values(Q), values(D))))
-        rhs = M[:,ti-1] ./ ht
-        resFP += sum(abs2.(lhs' *M[:,ti]-rhs))
-    end
-    resFP = sqrt(hs1*hs2*ht*resFP)
-
-    for ti in N:-1:1  
-        temp = -(U[:,ti+1]-U[:,ti]) ./ ht - 
-                ε .* A * U[:,ti] + (0.5 .*  (F1.(M[:,ti+1])) .*sum(map(q->q[:,ti].^2, Q))) - 
-                V - F2.(M[:,ti+1])
-    
-        resHJB += sum(abs2.(temp))
-    end
-    resHJB = sqrt(hs1*hs2*ht*resHJB)
-    return (resFP, resHJB)
-end
 
 
 ############# One Dim ############################
@@ -234,7 +148,7 @@ function solve_mfg_fixpoint_1d(Problem::MFGOneDim, ::Val{:FixPoint2}, node::Int6
     end
 
     function compute_res(U, M, Q; N=N, ht=ht, ε=ε, V=V, A=A, D=D, F1=F1, F2=F2, hs=hs)
-        compute_res_fixpoint(U, M, Q, N, ht, ε, V, A, D, F1, F2, hs)
+        compute_res_helper(U, M, Q, N, ht, ε, V, A, D, F1, F2, hs)
     end
 
     # println("start Policy Iteration")
@@ -282,91 +196,4 @@ function solve_mfg_fixpoint_1d(Problem::MFGOneDim, ::Val{:FixPoint2}, node::Int6
     result = MFGOneDim_result(converge,M,U,Q,sgrid,tgrid,length(hist_q),history,M_List,U_List,Q_List)
     return result
 end
-
-function solve_HJB_fixpoint_helper!(
-    U_new::Matrix{T}, U_old::Matrix{T}, M::Matrix{T}, 
-    Q::NamedTuple{<:Any, NTuple{2, Matrix{T}}}, 
-    N::Int64, ht::T, ε::T, V::Vector{T}, A::SparseMatrixCSC{T,Int64},
-    D::NamedTuple{<:Any, NTuple{2, SparseMatrixCSC{T,Int64}}},
-    F1::Function, F2::Function, update_Q::Function,hs::T) where {T<:Float64}
-    """
-    Q = DU_old / F1(M) 
-    jacon * W = -res
-    U_new = U_old + W   # loop with t
-    """
-    
-    # update U with U_old and M
-    for ti in N:-1:1
-        U_temp = copy(U_old[:,ti])
-        # U_temp = copy(U_new[:,ti+1])
-        update_control!(Q, U_temp, M, D, update_Q, ti)
-
-        for inner_it in 1:300
-            jacon = 1/ht*I -  ε .* A + 1 .*
-                (spdiagm(Q.QL[:,ti])*D.DL + spdiagm(Q.QR[:,ti])*D.DR)
-
-            res = -(U_new[:,ti+1]-U_temp) ./ ht - ε .* A*U_temp + 
-                    0.5 .* F1.(M[:,ti+1]) .* (Q.QL[:,ti].^2 + Q.QR[:,ti].^2) -
-                    V - F2.(M[:,ti+1])
-            
-            if sqrt(hs)*norm(res) < 1e-12
-                # println("norm_HJB_res: $(norm(res)), ti: $ti, inner_it: $inner_it") 
-                U_new[:,ti] = U_temp
-                # println("solve inner HJB") 
-                break
-            elseif inner_it==300
-                println("inner HJB solver not converge")
-                # println("update U_temp with Newton method")
-                U_temp = jacon \ (-res) + U_temp
-                update_control!(Q, U_temp, M, D, update_Q, ti)
-            else
-                # println("update U_temp with Newton method")
-                U_temp = jacon \ (-res) + U_temp
-                update_control!(Q, U_temp, M, D, update_Q, ti)
-            end
-        end
-    end
-    return nothing
-end
-
-# update Q in time ti 
-function update_control!(
-    Q_new::NamedTuple{<:Any, NTuple{2, Matrix{T}}},
-    Uti::Vector{T}, M::Matrix{T},
-    D::NamedTuple{<:Any, NTuple{2, SparseMatrixCSC{T,Int64}}},
-    update_Q::Function, ti::Int64) where {T<:Float64}
-
-    # update control Q from U and M
-    Q_new.QL[:,ti] = update_Q.(max.(D.DL*Uti,0) , M[:,ti+1])
-    Q_new.QR[:,ti] = update_Q.(min.(D.DR*Uti,0) , M[:,ti+1])
-    return nothing
-end
-
-function compute_res_fixpoint(
-    U::Matrix{T}, M::Matrix{T}, 
-    Q::NamedTuple{<:Any, NTuple{2, Matrix{T}}},
-    N::Int64, ht::T, ε::T, V::Vector{T}, A::SparseMatrixCSC{T,Int64},
-    D::NamedTuple{<:Any, NTuple{2, SparseMatrixCSC{T,Int64}}},
-    F1::Function, F2::Function, hs::T) where {T<:Float64}
-
-    resFP, resHJB = 0, 0
-    for ti in 2:N+1
-        lhs =  I/ht - (ε .* A - sum(map((q,d)->spdiagm(q[:,ti-1])*d, values(Q), values(D))))
-        rhs = M[:,ti-1] ./ ht
-        resFP += sum(abs2.(lhs' *M[:,ti]-rhs))
-    end
-    resFP = sqrt(hs*ht*resFP)
-
-    for ti in N:-1:1  
-        temp = -(U[:,ti+1]-U[:,ti]) ./ ht - 
-                ε .* A * U[:,ti] + (0.5 .*  (F1.(M[:,ti+1])) .*sum(map(q->q[:,ti].^2, Q))) - 
-                V - F2.(M[:,ti+1])
-    
-        resHJB += sum(abs2.(temp))
-    end
-    resHJB = sqrt(hs*ht*resHJB)
-    return (resFP, resHJB)
-end
-
-
 
