@@ -61,9 +61,9 @@ begin
     end
 
     begin
-        q_pic = plot(re_OneDim.sgrid, (re_OneDim.Q.QL+re_OneDim.Q.QR)[:,1], lw=2, label="t=0",legend=:bottomright)
+        q_pic = plot(re_OneDim.sgrid, (re_OneDim.Q.QL+re_OneDim.Q.QR)[:,1], lw=2, label="t=0",legend=:bottom)
         for ti in [40,80,120,160,200]
-            plot!(q_pic,re_OneDim.sgrid, (re_OneDim.Q.QL+re_OneDim.Q.QR)[:,ti], lw=2, label="t=$(ti/200)",legend=:bottomright)
+            plot!(q_pic,re_OneDim.sgrid, (re_OneDim.Q.QL+re_OneDim.Q.QR)[:,ti], lw=2, label="t=$(ti/200)",legend=:bottom)
         end
         xlabel!("x")
         ylabel!("Q")
