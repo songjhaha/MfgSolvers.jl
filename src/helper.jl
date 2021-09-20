@@ -99,7 +99,7 @@ function solve_HJB_fixpoint_helper!(
                     V - F2.(M[:,ti+1])
             
             # if residual is small enough, set U_new[:,ti], then go to solve U at ti-1
-            if sqrt(hs)*norm(res) < 1e-12
+            if sqrt(hs)*norm(res) < 5e-13
                 # println("norm_HJB_res: $(norm(res)), ti: $ti, inner_it: $inner_it") 
                 U_new[:,ti] = U_temp
                 break
@@ -160,7 +160,7 @@ function solve_HJB_fixpoint_helper!(
                     V - F2.(M[:,ti+1])
             
             # if residual is small enough, set U_new[:,ti], then go to solve U at ti-1
-            if sqrt(hs1*hs2)*norm(res) < 1e-12
+            if sqrt(hs1*hs2)*norm(res) < 5e-13
                 # println("norm_HJB_res: $(norm(res)), ti: $ti, inner_it: $inner_it") 
                 U_new[:,ti] = U_temp
                 break

@@ -41,7 +41,7 @@ end
 
 re_OneDim = OneDimTest1()
 
-# q* get when |q^{k+1}-q^{k}|<1e-10 with fixed point
+# q* get with 80 iterations
 re_OneDim_fixpoint = OneDimTest1_fixpoint()
 
 # case1
@@ -116,7 +116,7 @@ function TwoDimTest4_PI1(Nh::Int64)
     update_Q(Du,m) = Du / F1(m)
 
     problem = MFGTwoDim(xmin1,xmax1,xmin2,xmax2,T,ε,m0,uT,V,F1,F2,update_Q)
-    re = solve_mfg(problem;method=:PI1,node1=Nh,node2=Nh,N=50) 
+    re = solve_mfg(problem;method=:PI1,node1=Nh,node2=Nh,N=50,tol=1e-16) 
     return re
 end
 
@@ -132,7 +132,7 @@ function TwoDimTest4_PI2(Nh::Int64)
     update_Q(Du,m) = Du / F1(m)
 
     problem = MFGTwoDim(xmin1,xmax1,xmin2,xmax2,T,ε,m0,uT,V,F1,F2,update_Q) 
-    re_algo2 = solve_mfg(problem;method=:PI2,node1=Nh,node2=Nh,N=50,verbose=true)
+    re_algo2 = solve_mfg(problem;method=:PI2,node1=Nh,node2=Nh,N=50,verbose=true,tol=1e-16)
     return re_algo2
 end
 
@@ -148,43 +148,60 @@ function TwoDimTest4_fixpoint(Nh::Int64)
     update_Q(Du,m) = Du / F1(m)
 
     problem = MFGTwoDim(xmin1,xmax1,xmin2,xmax2,T,ε,m0,uT,V,F1,F2,update_Q) 
-    re_algo2 = solve_mfg_fixpoint(problem;method=:FixPoint2,node1=Nh,node2=Nh,N=50,maxit=100,verbose=true)
+    re_algo2 = solve_mfg_fixpoint(problem;method=:FixPoint2,node1=Nh,node2=Nh,N=50,maxit=80,verbose=true,tol=1e-16)
     return re_algo2
 end
 re_PI1 = TwoDimTest4_PI1(50)
 re_PI2_Nh50 = TwoDimTest4_PI2(50)
 re_fixpoint2_Nh50 = TwoDimTest4_fixpoint(50) 
-# q* get when |m^{k+1}-m^{k}|<1e-10
+# q* get with 80 iteration 
 
 
-# Mass policy iteration
-contour(re_PI2_Nh50.sgrid2,re_PI2_Nh50.sgrid1,re_PI2_Nh50.M[:,:,1],c=:rainbow,size=(450,400))
+# Mass policy iteration 2
+heatmap(re_PI2_Nh50.sgrid2,re_PI2_Nh50.sgrid1,re_PI2_Nh50.M[:,:,1],c=:rainbow,size=(450,400))
+xlabel!("x2")
+ylabel!("x1")
 savefig("figures/M_case2_t0.pdf")
-contour(re_PI2_Nh50.sgrid2,re_PI2_Nh50.sgrid1,re_PI2_Nh50.M[:,:,17],c=:rainbow,size=(450,400))
+
+heatmap(re_PI2_Nh50.sgrid2,re_PI2_Nh50.sgrid1,re_PI2_Nh50.M[:,:,17],c=:rainbow,size=(450,400))
+xlabel!("x2")
+ylabel!("x1")
 savefig("figures/M_case2_t016.pdf")
-contour(re_PI2_Nh50.sgrid2,re_PI2_Nh50.sgrid1,re_PI2_Nh50.M[:,:,34],c=:rainbow,size=(450,400))
+
+heatmap(re_PI2_Nh50.sgrid2,re_PI2_Nh50.sgrid1,re_PI2_Nh50.M[:,:,34],c=:rainbow,size=(450,400))
+xlabel!("x2")
+ylabel!("x1")
 savefig("figures/M_case2_t033.pdf")
-contour(re_PI2_Nh50.sgrid2,re_PI2_Nh50.sgrid1,re_PI2_Nh50.M[:,:,end],levels=0:0.5:4.5,c=:rainbow,size=(450,400))
+
+heatmap(re_PI2_Nh50.sgrid2,re_PI2_Nh50.sgrid1,re_PI2_Nh50.M[:,:,end],levels=0:0.5:4.5,c=:rainbow,size=(450,400))
+xlabel!("x2")
+ylabel!("x1")
 savefig("figures/M_case2_t05.pdf")
 
 
 
 # residual fixPoint & PI2
-plot(re_fixpoint2_Nh50.history.residual_HJB[1:27], yaxis=:log, label="Fixed Point Iteration")
-plot!(re_PI2_Nh50.history.residual_HJB, yaxis=:log, label="Policy Iteration")
+plot(re_fixpoint2_Nh50.history.residual_HJB, lw=2, yaxis=:log, label="Fixed Point Iteration")
+plot!(re_PI2_Nh50.history.residual_HJB, lw=2, yaxis=:log, label="Policy Iteration")
+xlabel!("Iterations")
+ylabel!("Residual of HJB")
 savefig("figures/residual_HJB_Nh50.pdf")
 
-plot(re_fixpoint2_Nh50.history.residual_FP[1:27], yaxis=:log, label="Fixed Point Iteration")
-plot!(re_PI2_Nh50.history.residual_FP, yaxis=:log, label="Policy Iteration")
+plot(re_fixpoint2_Nh50.history.residual_FP, lw=2, yaxis=:log, label="Fixed Point Iteration")
+plot!(re_PI2_Nh50.history.residual_FP, lw=2, yaxis=:log, label="Policy Iteration")
+xlabel!("Iterations")
+ylabel!("Residual of FP")
 savefig("figures/residual_FP_Nh50.pdf")
 
 
 # PI1 & PI2 residual
-plot(re_PI1.history.residual_HJB, yaxis=:log, label="PI1-HJB")
-plot!(re_PI2_Nh50.history.residual_HJB, linestyles=:dash, yaxis=:log, label="PI2-HJB")
+plot(re_PI1.history.residual_HJB, lw=2, yaxis=:log, label="PI1-HJB")
+plot!(re_PI2_Nh50.history.residual_HJB, lw=2, linestyles=:dash, yaxis=:log, label="PI2-HJB")
 # savefig("residual_HJB_PI1_2.pdf")
-plot!(re_PI1.history.residual_FP, yaxis=:log, label="PI1-FP")
-plot!(re_PI2_Nh50.history.residual_FP, linestyles=:dash, yaxis=:log, label="PI2-FP")
+plot!(re_PI1.history.residual_FP, lw=2, yaxis=:log, label="PI1-FP")
+plot!(re_PI2_Nh50.history.residual_FP, lw=2, linestyles=:dash, yaxis=:log, label="PI2-FP")
+xlabel!("Iterations")
+ylabel!("Residual")
 savefig("figures/residual_PI1_2.pdf")
 
 begin
@@ -206,14 +223,15 @@ for Q in re_PI1.Q_List
     dist = maximum(map(L_inf_dist, Q, re_fixpoint2_Nh50.Q))
     append!(hist,dist)
 end
-plot(hist[1:end],yaxis=:log, label="PI1")
+plot(hist[1:end],yaxis=:log, lw=2, label="PI1")
 
 hist = Float64[]
 for Q in re_PI2_Nh50.Q_List
     dist = maximum(map(L_inf_dist, Q, re_fixpoint2_Nh50.Q))
     append!(hist,dist)
 end
-plot!(hist[1:end],yaxis=:log, label="PI2")
+plot!(hist[1:end],yaxis=:log, lw=2, label="PI2")
+xlabel!("Iterations")
 savefig("figures/total_converge_case2_q.pdf")
 
 hist = Float64[]
@@ -221,14 +239,15 @@ for M in re_PI1.M_List
     dist = maximum(abs.(reshape(M,50,50,51)-re_fixpoint2_Nh50.M))
     append!(hist,dist)
 end
-plot(hist[1:end],yaxis=:log, label="PI1")
+plot(hist[1:end],yaxis=:log, lw=2, label="PI1")
 
 hist = Float64[]
 for M in re_PI2_Nh50.M_List
     dist = maximum(abs.(reshape(M,50,50,51)-re_fixpoint2_Nh50.M))
     append!(hist,dist)
 end
-plot!(hist[1:end],yaxis=:log, label="PI2")
+plot!(hist[1:end],yaxis=:log, lw=2, label="PI2")
+xlabel!("Iterations")
 savefig("figures/total_converge_case2_m.pdf")
 
 hist = Float64[]
@@ -236,14 +255,15 @@ for U in re_PI1.U_List
     dist = maximum(abs.(reshape(U,50,50,51)-re_fixpoint2_Nh50.U))
     append!(hist,dist)
 end
-plot(hist[1:end],yaxis=:log, label="PI1")
+plot(hist[1:end],yaxis=:log, lw=2, label="PI1")
 
 hist = Float64[]
 for U in re_PI2_Nh50.U_List
     dist = maximum(abs.(reshape(U,50,50,51)-re_fixpoint2_Nh50.U))
     append!(hist,dist)
 end
-plot!(hist[1:end],yaxis=:log, label="PI2")
+plot!(hist[1:end],yaxis=:log, lw=2, label="PI2")
+xlabel!("Iterations")
 savefig("figures/total_converge_case2_u.pdf")
 
 
