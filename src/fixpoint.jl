@@ -1,8 +1,8 @@
 using LinearAlgebra, SparseArrays
 
-solve_mfg_fixpoint(Problem::MFGTwoDim; method=:FixPoint2, node1=50, node2=50, N=100, maxit=80, verbose=true) = solve_mfg_fixpoint_2d(Problem, Val(method),  node1, node2, N, maxit, verbose)
+solve_mfg_fixpoint(Problem::MFGTwoDim; method=:FixPoint2, node1=50, node2=50, N=100, maxit=80, tol=1e-10, verbose=true) = solve_mfg_fixpoint_2d(Problem, Val(method),  node1, node2, N, maxit, tol, verbose)
 
-function solve_mfg_fixpoint_2d(Problem::MFGTwoDim, ::Val{:FixPoint2}, node1::Int64, node2::Int64, N::Int64, maxit::Int64, verbose::Bool)
+function solve_mfg_fixpoint_2d(Problem::MFGTwoDim, ::Val{:FixPoint2}, node1::Int64, node2::Int64, N::Int64, maxit::Int64, tol::Float64, verbose::Bool)
     xmin1, xmax1, xmin2, xmax2, T, ε, m0, uT, cal_V, F1, F2, update_Q = Problem.xmin1, Problem.xmax1, Problem.xmin2, Problem.xmax2, Problem.T, Problem.ε, Problem.m0, Problem.uT, Problem.V, Problem.F1, Problem.F2, Problem.update_Q
     verbose && println("start solving with fixPoint iteration")
     begin    
@@ -79,7 +79,7 @@ function solve_mfg_fixpoint_2d(Problem::MFGTwoDim, ::Val{:FixPoint2}, node1::Int
         append!(U_List, [copy(U)])
         append!(Q_List, [deepcopy(Q)])
 
-        if L_dist_M < 1e-10
+        if L_dist_M < tol
             converge = true
             verbose && println("converge!Iteration $iter")
 
@@ -102,9 +102,9 @@ end
 
 
 ############# One Dim ############################
-solve_mfg_fixpoint(Problem::MFGOneDim; method=:FixPoint2, node=200, N=200, maxit=80, verbose=true) = solve_mfg_fixpoint_1d(Problem, Val(method), node, N, maxit, verbose)
+solve_mfg_fixpoint(Problem::MFGOneDim; method=:FixPoint2, node=200, N=200, maxit=80, tol=1e-10, verbose=true) = solve_mfg_fixpoint_1d(Problem, Val(method), node, N, maxit, tol, verbose)
 
-function solve_mfg_fixpoint_1d(Problem::MFGOneDim, ::Val{:FixPoint2}, node::Int64, N::Int64, maxit::Int64, verbose::Bool)
+function solve_mfg_fixpoint_1d(Problem::MFGOneDim, ::Val{:FixPoint2}, node::Int64, N::Int64, maxit::Int64, tol::Float64, verbose::Bool)
     xmin, xmax, T, ε, m0, uT, cal_V, F1, F2, update_Q = Problem.xmin, Problem.xmax, Problem.T, Problem.ε, Problem.m0, Problem.uT, Problem.V, Problem.F1, Problem.F2, Problem.update_Q
     verbose && println("start with fixed point iteration")
     begin
@@ -180,7 +180,7 @@ function solve_mfg_fixpoint_1d(Problem::MFGOneDim, ::Val{:FixPoint2}, node::Int6
         append!(U_List, [copy(U)])
         append!(Q_List, [deepcopy(Q)])
 
-        if L_dist_Q < 1e-10
+        if L_dist_Q < tol
             converge = true
             verbose && println("converge!Iteration $iter")
             

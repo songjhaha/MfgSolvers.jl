@@ -1,8 +1,8 @@
 using LinearAlgebra, SparseArrays
 
-solve_mfg(Problem::MFGOneDim; method=:PI1, node=200, N=200, maxit=80, verbose=true) = solve_mfg_1d(Problem, Val(method), node, N, maxit, verbose)
+solve_mfg(Problem::MFGOneDim; method=:PI1, node=200, N=200, maxit=80, tol=1e-8, verbose=true) = solve_mfg_1d(Problem, Val(method), node, N, maxit, tol, verbose)
 
-function solve_mfg_1d(Problem::MFGOneDim, ::Val{:PI1}, node::Int64, N::Int64, maxit::Int64, verbose::Bool)
+function solve_mfg_1d(Problem::MFGOneDim, ::Val{:PI1}, node::Int64, N::Int64, maxit::Int64, tol::Float64, verbose::Bool)
     
     xmin, xmax, T, ε, m0, uT, cal_V, F1, F2, update_Q = Problem.xmin, Problem.xmax, Problem.T, Problem.ε, Problem.m0, Problem.uT, Problem.V, Problem.F1, Problem.F2, Problem.update_Q
     
@@ -79,7 +79,7 @@ function solve_mfg_1d(Problem::MFGOneDim, ::Val{:PI1}, node::Int64, N::Int64, ma
         append!(Q_List, [deepcopy(Q)])
 
         # If converge, compute residual
-        if L_dist_Q < 1e-8
+        if L_dist_Q < tol
             converge = true
             verbose && println("converge!Iteration $iter")
        
@@ -97,7 +97,7 @@ function solve_mfg_1d(Problem::MFGOneDim, ::Val{:PI1}, node::Int64, N::Int64, ma
     return result
 end
 
-function solve_mfg_1d(Problem::MFGOneDim, ::Val{:PI2}, node::Int64, N::Int64, maxit::Int64, verbose::Bool)
+function solve_mfg_1d(Problem::MFGOneDim, ::Val{:PI2}, node::Int64, N::Int64, maxit::Int64, tol::Float64, verbose::Bool)
     
     xmin, xmax, T, ε, m0, uT, cal_V, F1, F2, update_Q = Problem.xmin, Problem.xmax, Problem.T, Problem.ε, Problem.m0, Problem.uT, Problem.V, Problem.F1, Problem.F2, Problem.update_Q
     
@@ -176,7 +176,7 @@ function solve_mfg_1d(Problem::MFGOneDim, ::Val{:PI2}, node::Int64, N::Int64, ma
         append!(Q_List, [deepcopy(Q)])
 
         # If converge, compute residual
-        if L_dist_Q < 1e-8
+        if L_dist_Q < tol
             converge = true
             verbose && println("converge!Iteration $iter")
 
