@@ -158,22 +158,22 @@ re_fixpoint2_Nh50 = TwoDimTest4_fixpoint(50)
 
 
 # Mass policy iteration 2
-heatmap(re_PI2_Nh50.sgrid2,re_PI2_Nh50.sgrid1,re_PI2_Nh50.M[:,:,1],c=:rainbow,size=(450,400))
+heatmap(re_PI2_Nh50.sgrid2,re_PI2_Nh50.sgrid1,re_PI2_Nh50.M[:,:,1],c=:rainbow,size=(580,520))
 xlabel!("x2")
 ylabel!("x1")
 savefig("figures/M_case2_t0.pdf")
 
-heatmap(re_PI2_Nh50.sgrid2,re_PI2_Nh50.sgrid1,re_PI2_Nh50.M[:,:,17],c=:rainbow,size=(450,400))
+heatmap(re_PI2_Nh50.sgrid2,re_PI2_Nh50.sgrid1,re_PI2_Nh50.M[:,:,17],c=:rainbow,size=(580,520))
 xlabel!("x2")
 ylabel!("x1")
 savefig("figures/M_case2_t016.pdf")
 
-heatmap(re_PI2_Nh50.sgrid2,re_PI2_Nh50.sgrid1,re_PI2_Nh50.M[:,:,34],c=:rainbow,size=(450,400))
+heatmap(re_PI2_Nh50.sgrid2,re_PI2_Nh50.sgrid1,re_PI2_Nh50.M[:,:,34],c=:rainbow,size=(580,520))
 xlabel!("x2")
 ylabel!("x1")
 savefig("figures/M_case2_t033.pdf")
 
-heatmap(re_PI2_Nh50.sgrid2,re_PI2_Nh50.sgrid1,re_PI2_Nh50.M[:,:,end],levels=0:0.5:4.5,c=:rainbow,size=(450,400))
+heatmap(re_PI2_Nh50.sgrid2,re_PI2_Nh50.sgrid1,re_PI2_Nh50.M[:,:,end],levels=0:0.5:4.5,c=:rainbow,size=(580,520))
 xlabel!("x2")
 ylabel!("x1")
 savefig("figures/M_case2_t05.pdf")
@@ -282,21 +282,35 @@ function non_quad()
     update_Q(DU, Du_norm, m) = DU*Du_norm / (m^0.5)
     Nh=50
     problem = MFGTwoDim(xmin1,xmax1,xmin2,xmax2,T,ε,m0,uT,V,F1,F2,update_Q)
-    re = solve_mfg_non_quad(problem;method=:PI1, node1=Nh,node2=Nh,N=50) 
+    re = solve_mfg_non_quad(problem;method=:PI1,tol=1e-16, node1=Nh,node2=Nh,N=50) 
     return re
 end
 
 re_non_quad = non_quad()
 
 # Mass policy iteration
-contour(re_non_quad.sgrid2,re_non_quad.sgrid1,re_non_quad.M[:,:,1],c=:rainbow,size=(450,400))
+heatmap(re_non_quad.sgrid2,re_non_quad.sgrid1,re_non_quad.M[:,:,1],c=:rainbow,size=(580,520))
+xlabel!("x2")
+ylabel!("x1")
 savefig("figures/M_case3_t0.pdf")
-contour(re_non_quad.sgrid2,re_non_quad.sgrid1,re_non_quad.M[:,:,17],c=:rainbow,size=(450,400))
+
+heatmap(re_non_quad.sgrid2,re_non_quad.sgrid1,re_non_quad.M[:,:,17],c=:rainbow,size=(580,520))
+xlabel!("x2")
+ylabel!("x1")
 savefig("figures/M_case3_t016.pdf")
-contour(re_non_quad.sgrid2,re_non_quad.sgrid1,re_non_quad.M[:,:,34],c=:rainbow,size=(450,400))
+
+heatmap(re_non_quad.sgrid2,re_non_quad.sgrid1,re_non_quad.M[:,:,34],c=:rainbow,size=(580,520))
+xlabel!("x2")
+ylabel!("x1")
 savefig("figures/M_case3_t033.pdf")
-contour(re_non_quad.sgrid2,re_non_quad.sgrid1,re_non_quad.M[:,:,end],c=:rainbow,size=(450,400))
+
+heatmap(re_non_quad.sgrid2,re_non_quad.sgrid1,re_non_quad.M[:,:,end],c=:rainbow,size=(580,520))
+xlabel!("x2")
+ylabel!("x1")
 savefig("figures/M_case3_t05.pdf")
+
+contour(re_non_quad.sgrid2,re_non_quad.sgrid1,re_non_quad.M[:,:,end],fill=true,c=:rainbow,size=(580,520))
+
 
 plot(re_non_quad.history.hist_q, yaxis=:log, label="q")
 plot!(re_non_quad.history.hist_m, yaxis=:log, label="m")
