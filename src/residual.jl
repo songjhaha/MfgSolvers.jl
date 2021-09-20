@@ -65,7 +65,6 @@ function compute_res_helper_non_quad(
     N::Int64, ht::T, ε::T, V::Vector{T}, A::SparseMatrixCSC{T,Int64},
     D::NamedTuple{<:Any, NTuple{4, SparseMatrixCSC{T,Int64}}},
     F1::Function, F2::Function, hs1::T, hs2::T) where {T<:Float64}
-    println("use non quad res")
 
     resFP, resHJB = 0, 0
     for ti in 2:N+1
@@ -76,10 +75,11 @@ function compute_res_helper_non_quad(
     resFP = sqrt(hs1*hs2*ht*resFP)
 
     for ti in N:-1:1  
-        lhs = I/ht -  ε .* A
-        rhs = U[:,ti+1] ./ht - (1/3) .*F1.(M[:,ti+1]) .*sum(map(q->q[:,ti].^2, Q)).^0.75 + V + F2.(M[:,ti+1])
-
-        resHJB += sum(abs2.(lhs*U[:,ti]-rhs))
+        temp = -(U[:,ti+1]-U[:,ti]) ./ ht - 
+                ε .* A * U[:,ti] + (1/3) .*(F1.(M[:,ti+1])) .*sum(map(q->q[:,ti].^2, Q)).^0.75 - 
+                V - F2.(M[:,ti+1])
+    
+        resHJB += sum(abs2.(temp))
     end
     resHJB = sqrt(hs1*hs2*ht*resHJB)
     return (resFP, resHJB)
