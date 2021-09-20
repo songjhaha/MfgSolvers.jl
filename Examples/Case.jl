@@ -19,7 +19,7 @@ function OneDimTest1()
     F2(m) = m
     update_Q(Du,m) = Du / F1(m)
     problem = MFGOneDim(xmin,xmax,T,ε,m0,uT,V,F1,F2,update_Q)
-    re = solve_mfg(problem;method=:PI1,node=200,N=200,verbose=true)
+    re = solve_mfg(problem;method=:PI1,node=200,N=200,tol=1e-16,verbose=true)
     return re
 end
 
@@ -35,7 +35,7 @@ function OneDimTest1_fixpoint()
     F2(m) = m
     update_Q(Du,m) = Du / F1(m)
     problem = MFGOneDim(xmin,xmax,T,ε,m0,uT,V,F1,F2,update_Q)
-    re = solve_mfg_fixpoint(problem;method=:FixPoint2,node=200,N=200,verbose=true)
+    re = solve_mfg_fixpoint(problem;method=:FixPoint2,node=200,N=200,tol=1e-16,verbose=true)
     return re
 end
 
@@ -51,22 +51,27 @@ begin
     # plot!(re_OneDim.history.hist_u, yaxis=:log, label=L"\Vert u^{(k+1)}-u^{(k)} \Vert")
     # savefig("converge_case1.pdf")
     begin
-        m_pic = plot(re_OneDim.sgrid, re_OneDim.M[:,1], label="t=0")
+        m_pic = plot(re_OneDim.sgrid, re_OneDim.M[:,1], lw=2, label="t=0")
         for ti in [41,81,121,161,201]
-            plot!(m_pic, re_OneDim.sgrid, re_OneDim.M[:,ti], label="t=$((ti-1)/200)")
+            plot!(m_pic, re_OneDim.sgrid, re_OneDim.M[:,ti], lw=2, label="t=$((ti-1)/200)")
         end
+        xlabel!("x")
+        ylabel!("M")
         savefig("figures/M_case1.pdf")
     end
 
     begin
-        q_pic = plot(re_OneDim.sgrid, (re_OneDim.Q.QL+re_OneDim.Q.QR)[:,1], label="t=0",legend=:bottomright)
+        q_pic = plot(re_OneDim.sgrid, (re_OneDim.Q.QL+re_OneDim.Q.QR)[:,1], lw=2, label="t=0",legend=:bottomright)
         for ti in [40,80,120,160,200]
-            plot!(q_pic,re_OneDim.sgrid, (re_OneDim.Q.QL+re_OneDim.Q.QR)[:,ti], label="t=$(ti/200)",legend=:bottomright)
+            plot!(q_pic,re_OneDim.sgrid, (re_OneDim.Q.QL+re_OneDim.Q.QR)[:,ti], lw=2, label="t=$(ti/200)",legend=:bottomright)
         end
+        xlabel!("x")
+        ylabel!("Q")
         savefig("figures/Q_case1.pdf")
     end
-    plot(re_OneDim.history.residual_HJB, yaxis=:log, label="HJB")
-    plot!(re_OneDim.history.residual_FP, yaxis=:log, label="FP")
+    plot(re_OneDim.history.residual_HJB[1:40], lw=2, yaxis=:log, label="HJB")
+    plot!(re_OneDim.history.residual_FP[1:40], lw=2, yaxis=:log, label="FP")
+    xlabel!("Iteration")
     savefig("figures/case1_residual.pdf")
 end
 
@@ -76,21 +81,22 @@ for Q in re_OneDim.Q_List
     dist = maximum(map(L_inf_dist, Q, re_OneDim_fixpoint.Q))
     append!(hist,dist)
 end
-plot(hist[1:end],yaxis=:log, label=L"\Vert q^{(k)}-q^{*} \Vert")
+plot(hist[1:40],yaxis=:log, lw=2, label=L"\Vert q^{(k)}-q^{*} \Vert")
 
 hist = Float64[]
 for M in re_OneDim.M_List
     dist = maximum(abs.(M-re_OneDim_fixpoint.M))
     append!(hist,dist)
 end
-plot!(hist[1:end],yaxis=:log, label=L"\Vert m^{(k)}-m^{*} \Vert")
+plot!(hist[1:40],yaxis=:log, lw=2, label=L"\Vert m^{(k)}-m^{*} \Vert")
 
 hist = Float64[]
 for U in re_OneDim.U_List
     dist = maximum(abs.(U-re_OneDim_fixpoint.U))
     append!(hist,dist)
 end
-plot!(hist[1:end],yaxis=:log, label=L"\Vert u^{(k)}-u^{*} \Vert")
+plot!(hist[1:40],yaxis=:log, lw=2, label=L"\Vert u^{(k)}-u^{*} \Vert")
+xlabel!("Iterations")
 savefig("figures/total_converge_case1.pdf")
 
 
