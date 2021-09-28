@@ -156,25 +156,37 @@ re_PI2_Nh50 = TwoDimTest4_PI2(50)
 re_fixpoint2_Nh50 = TwoDimTest4_fixpoint(50) 
 # q* get with 80 iteration 
 
-# function colorscale(x::Float64)
-#     if x<0.2
-#         return exp(x)
-#     elseif ((x>=0.2) & (x<0.6))
-#         return exp(x)
-#     else
-#         return exp(0.3)+x
-#     end
-# end
+function colorscale(x::Float64)
+    if x<0.3
+        return 0
+    elseif ((x>=0.3) & (x<0.5))
+        return exp(0.1x)-exp(0.03)
+    else
+        return 10
+    end
+end
 
-cg = cgrad(:rainbow,scale = exp)
+cg = cgrad(:rainbow,[0.1,0.2],scale = :log2)
 
 clim = extrema([re_PI2_Nh50.M[:,:,1];re_PI2_Nh50.M[:,:,17];
                 re_PI2_Nh50.M[:,:,34];re_PI2_Nh50.M[:,:,end]])
 
 p1 = contour(re_PI2_Nh50.sgrid2,re_PI2_Nh50.sgrid1,re_PI2_Nh50.M[:,:,1],fill=true,clims=clim,c=cg,size=(580,520))
+xlabel!("x2")
+ylabel!("x1")
+savefig("figures/M_case2_t0.pdf")
 p2 = contour(re_PI2_Nh50.sgrid2,re_PI2_Nh50.sgrid1,re_PI2_Nh50.M[:,:,17],levels=100,fill=true,clims=clim,c=cg,size=(580,520))
-# p3 = contour(re_PI2_Nh50.sgrid2,re_PI2_Nh50.sgrid1,re_PI2_Nh50.M[:,:,34],fill=true,clims=clim,c=cg,size=(580,520))
-# p4 = contour(re_PI2_Nh50.sgrid2,re_PI2_Nh50.sgrid1,re_PI2_Nh50.M[:,:,end],fill=true,clims=clim,c=cg,size=(580,520))
+xlabel!("x2")
+ylabel!("x1")
+savefig("figures/M_case2_t016.pdf")
+p3 = contour(re_PI2_Nh50.sgrid2,re_PI2_Nh50.sgrid1,re_PI2_Nh50.M[:,:,34],levels=100,fill=true,clims=clim,c=cg,size=(580,520))
+xlabel!("x2")
+ylabel!("x1")
+savefig("figures/M_case2_t033.pdf")
+p4 = contour(re_PI2_Nh50.sgrid2,re_PI2_Nh50.sgrid1,re_PI2_Nh50.M[:,:,end],fill=true,clims=clim,c=cg,size=(580,520))
+xlabel!("x2")
+ylabel!("x1")
+savefig("figures/M_case2_t05.pdf")
 
 # Mass policy iteration 2
 contour(re_PI2_Nh50.sgrid2,re_PI2_Nh50.sgrid1,re_PI2_Nh50.M[:,:,1],fill=true,clims=clim,c=cg,size=(580,520))
@@ -329,7 +341,7 @@ end
 
 re_non_quad = non_quad()
 
-cg = cgrad(:rainbow,scale = (x->exp(3.5x)))
+cg = cgrad(:rainbow, [0.08,0.12], scale = :log2)
 
 clim = extrema([re_non_quad.M[:,:,1];re_non_quad.M[:,:,17];
                 re_non_quad.M[:,:,34];re_non_quad.M[:,:,end]])
@@ -346,7 +358,7 @@ xlabel!("x2")
 ylabel!("x1")
 savefig("figures/M_case3_t016.pdf")
 
-contour(re_non_quad.sgrid2,re_non_quad.sgrid1,re_non_quad.M[:,:,34],levels=300,fill=true,c=cg,clims=clim,size=(580,520))
+contour(re_non_quad.sgrid2,re_non_quad.sgrid1,re_non_quad.M[:,:,34],levels=400,fill=true,c=cg,clims=clim,size=(580,520))
 xlabel!("x2")
 ylabel!("x1")
 savefig("figures/M_case3_t033.pdf")
