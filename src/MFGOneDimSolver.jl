@@ -1,8 +1,9 @@
 using LinearAlgebra, SparseArrays
 
-solve_mfg(Problem::MFGOneDim; method=:PI1, node=200, N=200, maxit=80, tol=1e-8, verbose=true) = solve_mfg_1d(Problem, Val(method), node, N, maxit, tol, verbose)
+solve_mfg(Problem::MFGOneDim, init_Q; method=:PI1, node=200, N=200, maxit=80, tol=1e-8, verbose=true) = solve_mfg_1d(Problem, Val(method), node, N, maxit, tol, verbose, init_Q)
+solve_mfg(Problem::MFGOneDim; method=:PI1, node=200, N=200, maxit=80, tol=1e-8, verbose=true) = solve_mfg_1d(Problem, Val(method), node, N, maxit, tol, verbose, nothing)
 
-function solve_mfg_1d(Problem::MFGOneDim, ::Val{:PI1}, node::Int64, N::Int64, maxit::Int64, tol::Float64, verbose::Bool)
+function solve_mfg_1d(Problem::MFGOneDim, ::Val{:PI1}, node::Int64, N::Int64, maxit::Int64, tol::Float64, verbose::Bool, init_Q)
     
     xmin, xmax, T, ε, m0, uT, cal_V, F1, F2, update_Q = Problem.xmin, Problem.xmax, Problem.T, Problem.ε, Problem.m0, Problem.uT, Problem.V, Problem.F1, Problem.F2, Problem.update_Q
     
@@ -25,7 +26,11 @@ function solve_mfg_1d(Problem::MFGOneDim, ::Val{:PI1}, node::Int64, N::Int64, ma
         tgrid = Vector(0:ht:T)
         M, U, V, M_old, U_old = Initial_1d_state(sgrid, hs, node, N, m0, uT, cal_V)
         Q = Initial_1d_Q(node, N)
+        if init_Q!==nothing
+            Q = map(copy, init_Q)
+        end
         Q_new = map(copy, Q)
+        Q_final = map(copy, Q)
         U[1,end] = U[2,end]
         # Linear operators with periodic boundary
         A, D = build_Linear_operator(node,hs)
@@ -46,6 +51,7 @@ function solve_mfg_1d(Problem::MFGOneDim, ::Val{:PI1}, node::Int64, N::Int64, ma
     end
 
     function compute_res(U, M, Q; N=N, ht=ht, ε=ε, V=V, A=A, D=D, F1=F1, F2=F2, hs=hs)
+        update_control!(Q, U, M, D, update_Q)
         compute_res_helper(U, M, Q, N, ht, ε, V, A, D, F1, F2, hs)
     end
 
@@ -55,7 +61,7 @@ function solve_mfg_1d(Problem::MFGOneDim, ::Val{:PI1}, node::Int64, N::Int64, ma
         solve_HJB!(U, M, Q)     
         update_control!(Q_new, U, M, D, update_Q)
         
-        resFP, resHJB = compute_res(U, M, Q_new)
+        resFP, resHJB = compute_res(U, M, Q_final)
         Q, Q_new = Q_new, Q
 
         # record history

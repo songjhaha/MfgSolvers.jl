@@ -9,7 +9,7 @@ function solve_FP_helper!(
     N::Int64, ht::Float64, ε::Float64, A::SparseMatrixCSC{Float64,Int64},
     D::NamedTuple{<:Any, NTuple{Dim, SparseMatrixCSC{T,Int64}}}) where {T<:Float64, Dim}
     # solve FP equation with control
-    for ti in 2:N+1
+    @views for ti in 2:N+1
         lhs = I - ht .* (ε .* A - sum(map((q,d)->spdiagm(q[:,ti-1])*d, values(Q), values(D))))
         M[:,ti] = lhs' \ M[:,ti-1]
     end
@@ -26,7 +26,7 @@ function solve_HJB_helper!(
     D::NamedTuple{<:Any, NTuple{Dim, SparseMatrixCSC{T,Int64}}},
     F1::Function, F2::Function) where {T<:Float64, Dim}
     # solve HJB equation with control and M
-    for ti in N:-1:1  
+    @views for ti in N:-1:1  
         lhs = I - ht .* (ε .* A - sum(map((q,d)->spdiagm(q[:,ti])*d, values(Q), values(D))))
         rhs = U[:,ti+1] + ht .*  (0.5 .*  F1.(M[:,ti+1]) .*sum(map(q->q[:,ti].^2, Q)) + V + F2.(M[:,ti+1]))
         U[:,ti] = lhs \ rhs
@@ -46,8 +46,8 @@ function update_control!(
     update_Q::Function) where {T<:Float64}
 
     # update control Q from U and M
-    Q_new.QL .= update_Q.(max.(D.DL*U[:,1:end-1],0) , M[:,2:end])
-    Q_new.QR .= update_Q.(min.(D.DR*U[:,1:end-1],0) , M[:,2:end])
+    Q_new.QL .= @views update_Q.(max.(D.DL*U[:,1:end-1],0) , M[:,2:end])
+    Q_new.QR .= @views update_Q.(min.(D.DR*U[:,1:end-1],0) , M[:,2:end])
     return nothing
 end
 
@@ -126,8 +126,8 @@ function update_control!(
     update_Q::Function, ti::Int64) where {T<:Float64}
 
     # update control Q from U and M
-    Q_new.QL[:,ti] = update_Q.(max.(D.DL*Uti,0) , M[:,ti+1])
-    Q_new.QR[:,ti] = update_Q.(min.(D.DR*Uti,0) , M[:,ti+1])
+    Q_new.QL[:,ti] = @views update_Q.(max.(D.DL*Uti,0) , M[:,ti+1])
+    Q_new.QR[:,ti] = @views update_Q.(min.(D.DR*Uti,0) , M[:,ti+1])
     return nothing
 end
 

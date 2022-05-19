@@ -107,8 +107,8 @@ struct MFGTwoDim_result<:MFGResult
 end
 
 function Base.show(io::IO, x::MFGResult)
-    println(io, "Converge: ",  x.converge)
-    println(io, "iterations: ", x.iter)
+    # println(io, "Converge: ",  x.converge)
+    # println(io, "iterations: ", x.iter)
     println(io, "FP_Residual: ",  x.history.residual_FP[end])
     println(io, "HJB_Residual: ",  x.history.residual_HJB[end])
 end

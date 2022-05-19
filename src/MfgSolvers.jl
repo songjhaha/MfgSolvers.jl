@@ -9,6 +9,7 @@ include("MFGTwoDimSolver.jl")
 include("fixpoint.jl")
 include("MFGTwoDimNonQuad.jl")
 
+include("MFGOneDimSolverFP.jl")
 
 export MFGOneDim, MFGTwoDim, solve_mfg, solve_mfg_fixpoint, solve_mfg_non_quad
 
