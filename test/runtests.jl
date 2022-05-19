@@ -22,7 +22,7 @@ end
 function TwoDimTest()
     xmin1, xmax1, xmin2, xmax2 = 0, 1, 0, 1
     T = 0.5
-    ε = 0.3
+    ε = 0.5
     m0(x1,x2) = exp(-10((x1-0.25)^2+(x2-0.25)^2))
     uT(x1,x2) = 1.2*cospi(2*x1) + cospi(2*x2)
     V(x1,x2) = 0.1
@@ -39,7 +39,7 @@ end
 function TwoDim_non_quad_Test()
     xmin1, xmax1, xmin2, xmax2 = 0, 1, 0, 1
     T = 0.5
-    ε = 0.3
+    ε = 0.5
     m0(x1,x2) = exp(-10((x1-0.25)^2+(x2-0.25)^2))
     uT(x1,x2) = 1.2*cospi(2*x1) + cospi(2*x2)
     V(x1,x2) = 0.1
