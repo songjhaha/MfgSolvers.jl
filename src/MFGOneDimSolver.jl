@@ -103,7 +103,7 @@ function solve_mfg_1d(Problem::MFGOneDim, ::Val{:PI1}, node::Int64, N::Int64, ma
     return result
 end
 
-function solve_mfg_1d(Problem::MFGOneDim, ::Val{:PI2}, node::Int64, N::Int64, maxit::Int64, tol::Float64, verbose::Bool)
+function solve_mfg_1d(Problem::MFGOneDim, ::Val{:PI2}, node::Int64, N::Int64, maxit::Int64, tol::Float64, verbose::Bool, init_Q)
     
     xmin, xmax, T, ε, m0, uT, cal_V, F1, F2, update_Q = Problem.xmin, Problem.xmax, Problem.T, Problem.ε, Problem.m0, Problem.uT, Problem.V, Problem.F1, Problem.F2, Problem.update_Q
     
@@ -126,6 +126,9 @@ function solve_mfg_1d(Problem::MFGOneDim, ::Val{:PI2}, node::Int64, N::Int64, ma
         tgrid = Vector(0:ht:T)
         M, U, V, M_old, U_old = Initial_1d_state(sgrid, hs, node, N, m0, uT, cal_V)
         Q = Initial_1d_Q(node, N)
+        if init_Q!==nothing
+            Q = map(copy, init_Q)
+        end
         Q_new = map(copy, Q)
         Q_tilde = map(copy, Q)
         U[1,end] = U[2,end]
