@@ -114,3 +114,4 @@ function Base.show(io::IO, x::MFGResult)
 end
 
 Base.show(io::IO, m::MIME"text/plain", x::MFGResult) = show(io, x)
+

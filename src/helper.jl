@@ -46,8 +46,10 @@ function update_control!(
     update_Q::Function) where {T<:Float64}
 
     # update control Q from U and M
-    Q_new.QL .= @views update_Q.(max.(D.DL*U[:,1:end-1],0) , M[:,2:end])
-    Q_new.QR .= @views update_Q.(min.(D.DR*U[:,1:end-1],0) , M[:,2:end])
+    @views begin
+        Q_new.QL .= update_Q.(max.(D.DL*U[:,1:end-1],0) , M[:,2:end])
+        Q_new.QR .= update_Q.(min.(D.DR*U[:,1:end-1],0) , M[:,2:end])
+    end
     return nothing
 end
 
@@ -59,10 +61,12 @@ function update_control!(
     update_Q::Function) where {T<:Float64}
 
     # update control Q from U and M
-    Q_new.QL1 .= @views update_Q.(max.(D.DL1*U[:,1:end-1],0) , M[:,2:end])
-    Q_new.QR1 .= @views update_Q.(min.(D.DR1*U[:,1:end-1],0) , M[:,2:end])
-    Q_new.QL2 .= @views update_Q.(max.(D.DL2*U[:,1:end-1],0) , M[:,2:end])
-    Q_new.QR2 .= @views update_Q.(min.(D.DR2*U[:,1:end-1],0) , M[:,2:end])
+    @views begin
+        Q_new.QL1 .= update_Q.(max.(D.DL1*U[:,1:end-1],0) , M[:,2:end])
+        Q_new.QR1 .= update_Q.(min.(D.DR1*U[:,1:end-1],0) , M[:,2:end])
+        Q_new.QL2 .= update_Q.(max.(D.DL2*U[:,1:end-1],0) , M[:,2:end])
+        Q_new.QR2 .= update_Q.(min.(D.DR2*U[:,1:end-1],0) , M[:,2:end])
+    end
     return nothing
 end
 
@@ -119,6 +123,7 @@ function solve_HJB_fixpoint_helper!(
 end
 
 # Dimension 1 update Q in time ti 
+# use in fix point method
 function update_control!(
     Q_new::NamedTuple{<:Any, NTuple{2, Matrix{T}}},
     Uti::Vector{T}, M::Matrix{T},
@@ -126,8 +131,10 @@ function update_control!(
     update_Q::Function, ti::Int64) where {T<:Float64}
 
     # update control Q from U and M
-    Q_new.QL[:,ti] = @views update_Q.(max.(D.DL*Uti,0) , M[:,ti+1])
-    Q_new.QR[:,ti] = @views update_Q.(min.(D.DR*Uti,0) , M[:,ti+1])
+    @views begin
+        Q_new.QL[:,ti] = update_Q.(max.(D.DL*Uti,0) , M[:,ti+1])
+        Q_new.QR[:,ti] = update_Q.(min.(D.DR*Uti,0) , M[:,ti+1])
+    end
     return nothing
 end
 
@@ -180,16 +187,19 @@ function solve_HJB_fixpoint_helper!(
 end
 
 # Dimension 2 update Q in time ti 
+# use in fix point method
 function update_control!(
     Q_new::NamedTuple{<:Any, NTuple{4, Matrix{T}}},
     Uti::Vector{T}, M::Matrix{T},
     D::NamedTuple{<:Any, NTuple{4, SparseMatrixCSC{T,Int64}}},
     update_Q::Function, ti::Int64) where {T<:Float64}
     # update control Q from U and M
-    Q_new.QL1[:,ti] = @views update_Q.(max.(D.DL1*Uti,0) , M[:,ti+1])
-    Q_new.QR1[:,ti] = @views update_Q.(min.(D.DR1*Uti,0) , M[:,ti+1])
-    Q_new.QL2[:,ti] = @views update_Q.(max.(D.DL2*Uti,0) , M[:,ti+1])
-    Q_new.QR2[:,ti] = @views update_Q.(min.(D.DR2*Uti,0) , M[:,ti+1])
+    @views begin
+        Q_new.QL1[:,ti] = update_Q.(max.(D.DL1*Uti,0) , M[:,ti+1])
+        Q_new.QR1[:,ti] = update_Q.(min.(D.DR1*Uti,0) , M[:,ti+1])
+        Q_new.QL2[:,ti] = update_Q.(max.(D.DL2*Uti,0) , M[:,ti+1])
+        Q_new.QR2[:,ti] = update_Q.(min.(D.DR2*Uti,0) , M[:,ti+1])
+    end
     return nothing
 end
 
@@ -206,17 +216,17 @@ function update_control_non_quad!(
     
     size_Q_s, size_Q_t = size(Q_new.QL1)
     # update control Q from U and M
-    for ti in 1:size_Q_t
-        DLu1 = @views max.(D.DL1*U[:,ti],0)
-        DRu1 = @views min.(D.DR1*U[:,ti],0)
-        DLu2 = @views max.(D.DL2*U[:,ti],0)
-        DRu2 = @views min.(D.DR2*U[:,ti],0)
+    @views for ti in 1:size_Q_t
+        DLu1 = max.(D.DL1*U[:,ti],0)
+        DRu1 = min.(D.DR1*U[:,ti],0)
+        DLu2 = max.(D.DL2*U[:,ti],0)
+        DRu2 = min.(D.DR2*U[:,ti],0)
         Du_norm = sqrt.(abs2.(DLu1)+abs2.(DRu1)+abs2.(DLu2)+abs2.(DRu2))
             
-        Q_new.QL1[:,ti] = @views update_Q.(DLu1, Du_norm, M[:,ti+1]) 
-        Q_new.QR1[:,ti] = @views update_Q.(DRu1, Du_norm, M[:,ti+1]) 
-        Q_new.QL2[:,ti] = @views update_Q.(DLu2, Du_norm, M[:,ti+1]) 
-        Q_new.QR2[:,ti] = @views update_Q.(DRu2, Du_norm, M[:,ti+1]) 
+        Q_new.QL1[:,ti] = update_Q.(DLu1, Du_norm, M[:,ti+1]) 
+        Q_new.QR1[:,ti] = update_Q.(DRu1, Du_norm, M[:,ti+1]) 
+        Q_new.QL2[:,ti] = update_Q.(DLu2, Du_norm, M[:,ti+1]) 
+        Q_new.QR2[:,ti] = update_Q.(DRu2, Du_norm, M[:,ti+1]) 
     end
     return nothing
 end
@@ -235,4 +245,31 @@ function solve_HJB_helper_non_quad!(
         U[:,ti] = lhs \ rhs
     end
     return nothing
+end
+
+################################################
+############# PolicyIteration algorithm
+################################################
+
+function PolicyIteration!(M, M_bar, U, Q_new, Q, D, method::Val{:PI1}, solve_FP!, solve_HJB!, update_control!, update_Q, iter)
+    solve_FP!(M, Q)
+    solve_HJB!(U, M, Q)     
+    update_control!(Q_new, U, M, D, update_Q)
+    return
+end
+
+function PolicyIteration!(M, M_bar, U, Q_new, Q, D, method::Val{:PI2}, solve_FP!, solve_HJB!, update_control!, update_Q, iter)
+    solve_FP!(M, Q)
+    update_control!(Q_new, U, M, D, update_Q)
+    solve_HJB!(U, M, Q_new)     
+    update_control!(Q_new, U, M, D, update_Q)
+    return
+end
+
+function PolicyIteration!(M, M_bar, U, Q_new, Q, D, method::Val{:PI_FP}, solve_FP!, solve_HJB!, update_control!, update_Q, iter)
+    solve_FP!(M, Q)
+    M_bar .= (1-1/iter) .* M_bar + 1/iter .* M
+    solve_HJB!(U, M_bar, Q)     
+    update_control!(Q_new, U, M_bar, D, update_Q)
+    return
 end
