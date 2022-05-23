@@ -14,14 +14,14 @@ function compute_res_helper(
     F1::Function, F2::Function, hs::T) where {T<:Float64}
 
     resFP, resHJB = 0, 0
-    for ti in 2:N+1
+    @views for ti in 2:N+1
         lhs =  I/ht - (ε .* A - sum(map((q,d)->spdiagm(q[:,ti-1])*d, values(Q), values(D))))
         rhs = M[:,ti-1] ./ ht
         resFP += sum(abs2.(lhs' *M[:,ti]-rhs))
     end
     resFP = sqrt(hs*ht*resFP)
 
-    for ti in N:-1:1  
+    @views for ti in N:-1:1  
         temp = -(U[:,ti+1]-U[:,ti]) ./ ht - 
                 ε .* A * U[:,ti] + (0.5 .*  (F1.(M[:,ti+1])) .*sum(map(q->q[:,ti].^2, Q))) - 
                 V - F2.(M[:,ti+1])
