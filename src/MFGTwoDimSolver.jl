@@ -27,6 +27,7 @@ function solve_mfg_2d(Problem::MFGTwoDim, method, node1::Int64, node2::Int64, N:
         M_bar = copy(M)
         Q = Initial_2d_Q(node1, node2, N)
         Q_new = map(copy, Q)
+        Q_final = map(copy, Q)
         # Linear operators with periodic boundary
         A,D = build_Linear_operator_TwoDim(node1,node2,hs1,hs2)
         M_List = typeof(M)[]
@@ -46,6 +47,7 @@ function solve_mfg_2d(Problem::MFGTwoDim, method, node1::Int64, node2::Int64, N:
     end
 
     function compute_res(U, M, Q; N=N, ht=ht, ε=ε, V=V, A=A, D=D, F1=F1, F2=F2, hs1=hs1, hs2=hs2)
+        update_control!(Q, U, M, D, update_Q)
         compute_res_helper(U, M, Q, N, ht, ε, V, A, D, F1, F2, hs1, hs2)
     end
 
@@ -53,7 +55,7 @@ function solve_mfg_2d(Problem::MFGTwoDim, method, node1::Int64, node2::Int64, N:
     for iter in 1:maxit
         PolicyIteration!(M, M_bar, U, Q_new, Q, D, method, solve_FP!, solve_HJB!, update_control!, update_Q, iter)
 
-        resFP, resHJB = compute_res(U, M, Q_new)
+        resFP, resHJB = compute_res(U, M, Q_final)
         Q, Q_new = Q_new, Q
         
         # record history

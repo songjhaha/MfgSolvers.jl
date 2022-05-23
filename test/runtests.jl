@@ -34,7 +34,8 @@ function TwoDimTest()
     re = solve_mfg(problem;method=:PI1,node1=50,node2=50,N=50) 
     re2 = solve_mfg(problem;method=:PI2,node1=50,node2=50,N=50)
     re_fixp = solve_mfg_fixpoint(problem;method=:FixPoint2,node1=50,node2=50,N=50)  
-    return (re.converge,  re2.converge, re_fixp.converge)
+    re_pifp = solve_mfg(problem;method=:PI_FP,node1=50,node2=50,N=50,tol=1e-3)
+    return (re.converge,  re2.converge, re_fixp.converge, re_pifp.converge)
 end
 
 function TwoDim_non_quad_Test()
@@ -63,10 +64,11 @@ end
 end
 
 @testset "TwoDim" begin
-    converge1, converge2, converge_fixp = TwoDimTest() 
+    converge1, converge2, converge_fixp, converge_pifp = TwoDimTest() 
     @test converge1
     @test converge2
     @test converge_fixp
+    @test converge_pifp
 end
 
 @testset "NonQuad" begin
